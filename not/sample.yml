@@ -1,0 +1,18 @@
+---
+title: A sample set of do-nothing instructions
+
+# the user will be prompted to provide these values
+# and the values will persist through the run
+context: 
+  - current_user_name
+  - what_user_accomplished_today
+
+# a set of steps in an instructions document *must* be represented as a literal yaml block
+# https://yaml-multiline.info/#block-scalars
+# a new step is denoted exclusively by a blank line
+# plain python templates are used to interpolate context
+steps: |-
+  Take a good look at yourself, {current_user_name}.
+
+  I heard you accomplished something great today: {what_user_accomplished_today}.
+  Give yourself a pat on the back!
