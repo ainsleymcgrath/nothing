@@ -1,47 +1,36 @@
 import sys
-import yaml
+
+from . import parser_
+from . import runner
+from .theatrics import dramatic_title, spacious_print
 
 import typer
+
 
 app = typer.Typer()
 
 
-from .theatrics import dramatic_title, spacious_print
+@app.command()
+def do(instructions_document: str):
+    """Go through the steps of a Nothing you have already created"""
 
+    nothing: parser_.Nothing = parser_.parse(instructions_document)
 
-class Step:
-    def __init__(self, prompt, **template_vars):
-        self.prompt = prompt
-        self.template_vars = template_vars
-
-    def do(self):
-        try:
-            spacious_print(self.prompt.format(**self.template_vars))
-        except KeyError:
-            spacious_print(self.prompt)
+    runner.run(nothing)
 
 
 @app.command()
-def heee(instructions_document: str):
+def new(name: str, destination_dir: str = None):
+    """Template out a new nothing file to the nearest .nothing directory
+    and open with $EDITOR"""
+    pass
 
-    with open(f"{instructions_document}.yml") as f:
-        yml = yaml.full_load(f.read())
 
-        title = yml["title"]
-        context_dict = {}
+@app.command()
+def edit(name: str):
+    pass
 
-        dramatic_title(f"Doing nothing: {title}")
 
-        if "context" in yml:
-            for context_var in yml["context"]:
-                context_value = input(f"Please provide a value for {context_var}\n")
-                context_dict[context_var] = context_value
-                print()
-
-        steps = [Step(prompt, **context_dict) for prompt in yml["steps"].split("\n\n")]
-
-        for i, step in enumerate(steps):
-            print(f"Step {i + 1}:")
-            step.do()
-
-        print("\nDone!")
+@app.command()
+def copy(old_nothing: str, new_nothing: str):
+    pass
