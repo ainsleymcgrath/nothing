@@ -1,0 +1,2 @@
+NOTHINGFILE_EXTENSION_NAMES = ["yml", "yaml", "not"]
+NOTHINGFILE_DIRECTORY_NAME = ".nothings"

@@ -1,8 +1,8 @@
-from typing import Iterator, List, TypedDict
-
-from pathlib import Path
+from typing import Dict, Iterator, List, TypedDict
 
 import yaml
+
+from .utils import nothingfile_location
 
 
 class Step:
@@ -18,7 +18,7 @@ class Step:
 STEP_SEPARATOR = "\n\n"
 
 
-class Nothing:
+class NothingfileSpec:
     title: str
     context_list: List
     steps: Iterator[Step]
@@ -31,21 +31,22 @@ class Nothing:
         )
 
 
-class NothingFileDict(TypedDict):
+class NothingfileDict(TypedDict):
     """When a Nothing yml file is parsed,
     you end up with these top-level dict keys"""
 
     title: str
     steps: str
     context: List["str"]
+    config: Dict = None
 
 
-def parse(file: str) -> Nothing:
+def parse(nothingfile_name: str) -> NothingfileSpec:
     """Take the name of a Nothing spec, try to find it, load into a Nothing"""
 
-    # TODO: expect yaml also
-    # TODO: search for local .nothings/{file}, then global, then parents of local
-    with open(f"{file}.yml") as f:
-        yml: NothingFileDict = yaml.full_load(f.read())
+    target_file = nothingfile_location(nothingfile_name)
 
-    return Nothing(**yml)
+    with open(target_file) as f:
+        yml: NothingfileDict = yaml.full_load(f.read())
+
+    return NothingfileSpec(**yml)
