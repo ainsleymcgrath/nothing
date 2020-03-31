@@ -5,27 +5,32 @@ from typing import Iterator, Union
 from .constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
 
 
-def task_spec_location(task_spec_name: str) -> Union[Path, None]:
+def task_spec_location(spec_name: str) -> Union[Path, None]:
     """Take the name of a Task Spec file and try to return its canonical location as a path"""
 
-    dot_nothings_directories_below_cwd = Path.cwd().glob(DOT_NOTHING_DIRECTORY_NAME)
-    dot_nothings_directories_below_home = Path.home().glob(DOT_NOTHING_DIRECTORY_NAME)
-
-    def _glob_each_extension(path: Path):
-        for ext in VALID_TASK_SPEC_EXTENSION_NAMES:
-            yield from path.glob(f"**/{task_spec_name}.{ext}")
-
-    valid_task_specs_in_dot_nothings_directories: Iterator[Iterator] = (
-        _glob_each_extension(path)
-        for path in chain(
-            dot_nothings_directories_below_cwd, dot_nothings_directories_below_home
-        )
+    cwd_dot_nothing_dir, home_dot_nothing_dir = (
+        path.glob(DOT_NOTHING_DIRECTORY_NAME) for path in [Path.cwd(), Path.home()]
     )
 
-    dot_not_files_below_cwd = Path.cwd().glob(f"**/{task_spec_name}.not")
+    def _glob_each_extension(path: Path, recurse=False):
+        for ext in VALID_TASK_SPEC_EXTENSION_NAMES:
+            glob_str = f"**/{spec_name}.{ext}" if recurse else f"{spec_name}.{ext}"
+            yield from path.glob(glob_str)
+
+    task_specs_in_home_dot_nothing_dir: Iterator[Iterator] = (
+        _glob_each_extension(path) for path in home_dot_nothing_dir
+    )
+
+    task_specs_below_cwd_dot_nothing_dir: Iterator[Iterator] = (
+        _glob_each_extension(path, recurse=True) for path in cwd_dot_nothing_dir
+    )
+
+    dot_not_files_below_cwd = Path.cwd().glob(f"**/{spec_name}.not")
 
     any_place_a_task_spec_can_be = chain(
-        dot_not_files_below_cwd, *valid_task_specs_in_dot_nothings_directories
+        dot_not_files_below_cwd,
+        *task_specs_below_cwd_dot_nothing_dir,
+        *task_specs_in_home_dot_nothing_dir,
     )
 
     return next(any_place_a_task_spec_can_be, None)
