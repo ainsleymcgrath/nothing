@@ -2,7 +2,7 @@ from typing import Dict, Iterator, List, TypedDict
 
 import yaml
 
-from .utils import nothingfile_location
+from .utils import task_spec_location
 
 
 class Step:
@@ -18,7 +18,7 @@ class Step:
 STEP_SEPARATOR = "\n\n"
 
 
-class NothingfileSpec:
+class TaskSpec:
     title: str
     context_list: List
     steps: Iterator[Step]
@@ -31,7 +31,7 @@ class NothingfileSpec:
         )
 
 
-class NothingfileDict(TypedDict):
+class TaskSpecDict(TypedDict):
     """When a Nothing yml file is parsed,
     you end up with these top-level dict keys"""
 
@@ -41,12 +41,12 @@ class NothingfileDict(TypedDict):
     config: Dict = None
 
 
-def parse(nothingfile_name: str) -> NothingfileSpec:
+def parse(nothingfile_name: str) -> TaskSpec:
     """Take the name of a Nothing spec, try to find it, load into a Nothing"""
 
-    target_file = nothingfile_location(nothingfile_name)
+    target_file = task_spec_location(nothingfile_name)
 
     with open(target_file) as f:
-        yml: NothingfileDict = yaml.full_load(f.read())
+        yml: TaskSpecDict = yaml.full_load(f.read())
 
-    return NothingfileSpec(**yml)
+    return TaskSpec(**yml)

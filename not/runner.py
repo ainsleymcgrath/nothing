@@ -1,12 +1,12 @@
 from typing import Dict
 
-from .parser_ import NothingfileSpec, Step
+from .parser_ import TaskSpec, Step
 from .theatrics import spacious_print, dramatic_title
 
 import typer
 
 
-def run(nothing: NothingfileSpec):
+def run(nothing: TaskSpec):
     dramatic_title(f"Doing nothing: {nothing.title}")
 
     context_dict = {}
@@ -34,3 +34,4 @@ def run_step(step: Step, context: Dict):
     # TODO: rather than enter, prompt for:
     # [n]ext, [p]revious, [r]estart, or [q]uit
     input("Press enter to continue...")
+    typer.echo()

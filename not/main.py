@@ -1,41 +1,41 @@
 import typer
 
 from . import runner
-from .parser_ import parse, NothingfileSpec
+from .parser_ import parse, TaskSpec
 
 
 app = typer.Typer(help="Nothing helps coder be more smarter & less dumber.")
 
 
 @app.command()
-def do(instructions_document: str):
-    """Go through the steps of a Nothing you have already created"""
+def do(task_spec_name: str):
+    """Go through the steps of a Task Spec you have already created"""
 
-    nothing: NothingfileSpec = parse(instructions_document)
+    spec: TaskSpec = parse(task_spec_name)
 
-    runner.run(nothing)
+    runner.run(spec)
 
 
 @app.command()
-def new(name: str, destination_dir: str = None, notfile: str = None):
-    """Template out a new nothing file to the nearest .nothing directory
+def new(task_spec_name: str, destination_dir: str = None, as_notfile: bool = False):
+    """Template out a new Task Spec to the nearest .nothing directory
     and open with $EDITOR"""
     pass
 
 
 @app.command()
-def edit(name: str, rename: bool = False):
-    """Edit existing Nothing file"""
+def edit(task_spec_name: str, rename: bool = False):
+    """Edit existing Task Spec"""
     pass
 
 
 @app.command()
-def copy(old_nothing: str, new_nothing: str):
-    """Copy an old nothing file to a new one with the provided name"""
+def copy(existing_task_spec_name: str, new_task_spec_name: str):
+    """Copy an old Task Spec to a new one with the provided name"""
     pass
 
 
 @app.command()
-def describe(old_nothing: str, new_nothing: str):
-    """Display a little summary of the Nothingfile"""
+def describe(task_spec_name: str):
+    """Display a little summary of the Task Spec"""
     pass
