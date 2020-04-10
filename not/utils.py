@@ -1,12 +1,17 @@
+"""General-ish utilities for not"""
 from itertools import chain
 from pathlib import Path
 from typing import Iterator, Union
 
-from .constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
+from .constants import (
+    VALID_TASK_SPEC_EXTENSION_NAMES,
+    DOT_NOTHING_DIRECTORY_NAME,
+)
 
 
 def task_spec_location(spec_name: str) -> Union[Path, None]:
-    """Take the name of a Task Spec file and try to return its canonical location as a path"""
+    """Take the name of a Task Spec, find the corresponding file, and return its
+    canonical location as a path, if it exists"""
 
     cwd_dot_nothing_dir, home_dot_nothing_dir = (
         path.glob(DOT_NOTHING_DIRECTORY_NAME) for path in [Path.cwd(), Path.home()]

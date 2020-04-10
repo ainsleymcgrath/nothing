@@ -1,5 +1,7 @@
+# pylint: disable=missing-function-docstring, redefined-outer-name
+
+"""Tests for not.utils"""
 from pathlib import Path
-from typing import Dict
 from tempfile import TemporaryDirectory
 
 import pytest
@@ -7,7 +9,6 @@ import pytest
 from .. import utils
 from ..constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
 
-# TODO: start using the word 'task'
 SAMPLE_TASK_SPEC_NAMES = [
     "code_review_checklist",
     "release_hounds",
@@ -16,7 +17,10 @@ SAMPLE_TASK_SPEC_NAMES = [
 
 
 @pytest.fixture(scope="module")
-def dot_not_dir_with_a_file_of_each_extension() -> Dict["str", Path]:
+def dot_not_dir_with_a_file_of_each_extension() -> Path:
+    """The path to a directory containing 3 Task Spec files,
+    one with each of the valid extensions."""
+
     with TemporaryDirectory() as tempdir:
         for name, extension in zip(
             SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES
@@ -57,7 +61,7 @@ def test_task_spec_location_finds_any_extension_under_local_dot_nothing_dir(
 
 
 @pytest.fixture(scope="module")
-def ancestor_of_this_dir_has_dot_nothing_dir() -> Dict["str", Path]:
+def ancestor_of_this_dir_has_dot_nothing_dir() -> Path:
     with TemporaryDirectory() as tempdir:
         dot_nothing_directory = Path(tempdir) / DOT_NOTHING_DIRECTORY_NAME
         dot_nothing_directory.mkdir(exist_ok=True)
