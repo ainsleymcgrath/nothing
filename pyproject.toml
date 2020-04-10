@@ -13,13 +13,15 @@ not = "not.main:app"
 python = "^3.7"
 colorama = "^0.4.3"
 typer = "^0.1.0"
-pyaml = "^20.3.1"
+pydantic = "^1.4"
+"ruamel.yaml" = "^0.16.10"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.4.4"
 flake8 = "^3.7.9"
 black = "^19.10b0"
 ipython = "^7.13.0"
+pytest = "^5.4.1"
 
 [build-system]
 requires = ["poetry>=0.12"]
