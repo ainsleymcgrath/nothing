@@ -1,30 +1,39 @@
+"""Walk through a Task Spec interactively"""
 from typing import Dict
-
-from .parser_ import TaskSpec, Step
-from .theatrics import spacious_print, dramatic_title
 
 import typer
 
+from .models import Step, TaskSpec
+from .config import GlobalConfig
+from .theatrics import spacious_print, dramatic_title
 
-def run(nothing: TaskSpec):
-    dramatic_title(f"Doing nothing: {nothing.title}")
+
+config = GlobalConfig()
+
+
+def run(task_spec: TaskSpec):
+    """Interactively walk through a task spec"""
+    # TODO: merge in spec-level config...
+
+    dramatic_title(f"{config.title_prefix}: {task_spec.title}")
 
     context_dict = {}
 
-    if nothing.context_list:
-        for context_var in nothing.context_list:
-            context_value = typer.prompt(f"Please provide a value for {context_var}")
-            context_dict[context_var] = context_value
+    if task_spec.context:
+        for item in task_spec.context:
+            context_value = typer.prompt(item.prompt)
+            context_dict[item.var_name] = context_value
 
     typer.echo()
-    for step in nothing.steps:
-        run_step(step, context_dict)
+    for i, step in enumerate(task_spec.steps):
+        run_step(step, context_dict, number=i)
 
-    typer.echo("All done!")
+    typer.echo(config.completion_message)
 
 
-def run_step(step: Step, context: Dict):
-    typer.echo(f"Step {step.number}:")
+def run_step(step: Step, context: Dict, number=None):
+    """Run just one Step in a TaskSpec"""
+    typer.echo(f"{config.step_prefix} {step.number}:")
 
     try:
         spacious_print(step.prompt.format(**context))
