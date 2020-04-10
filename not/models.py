@@ -43,10 +43,11 @@ class ContextItem(BaseModel):
         return self.prompt != config.context_prompt.format(self.var_name)
 
 
-def context_items_from_yaml(
+def context_items_from_yaml_list(
     raw_context: Union[List[str], List[Dict], None]
 ) -> List[ContextItem]:
-    """Takes a list parsed from yaml and returns it as a list of ContextItem objects"""
+    """Takes a list extracted from yaml and
+    returns it as a list of ContextItem objects"""
 
     if raw_context is None:
         return None
@@ -91,12 +92,14 @@ class TaskSpecCreate(TaskSpec):
 
 
 class TaskSpecCreateExpert(TaskSpec):
-    """Serialize a Task Spec file."""
+    """Serializeable to a Task Spec file with all optional keys exposed"""
 
     filename: str
     title = config.default_title
     steps: List[Step] = steps_from_yaml_block(config.default_steps_expert)
-    context: List[Dict] = config.default_context_list
+    context: List[ContextItem] = context_items_from_yaml_list(
+        config.default_context_list
+    )
     presets: List[Dict] = config.default_presets
     config: Dict = TaskSpecConfig().dict()
 
