@@ -4,7 +4,7 @@ from ruamel.yaml import YAML
 
 from .models import (
     ContextItem,
-    context_items_from_yaml,
+    context_items_from_yaml_list,
     Step,
     steps_from_yaml_block,
     TaskSpec,
@@ -24,7 +24,7 @@ def serialize_task_spec_file(task_spec_content: str) -> TaskSpec:
     raw_context = yml.pop("context", None)
 
     parsed_steps: List[Step] = steps_from_yaml_block(raw_steps)
-    parsed_context: List[ContextItem] = context_items_from_yaml(raw_context)
+    parsed_context: List[ContextItem] = context_items_from_yaml_list(raw_context)
 
     return TaskSpec(steps=parsed_steps, context=parsed_context, **yml)
 
