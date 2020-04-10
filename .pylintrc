@@ -1,0 +1,4 @@
+[MASTER]
+
+disable=bad-continuation
+good-names=config,settings,app,do,yaml,i
