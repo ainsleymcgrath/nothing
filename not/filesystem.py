@@ -1,4 +1,4 @@
-"""General-ish utilities for not"""
+"""filesystemneral-ish utilities for not"""
 from itertools import chain
 from pathlib import Path
 from typing import Iterator, Union

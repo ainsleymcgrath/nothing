@@ -9,7 +9,7 @@ from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import serialize_task_spec_file
 
 # from .theatrics import show_task_spec_overview
-from .utils import task_spec_location
+from .filesystem import task_spec_location
 
 # from .utils import inspect
 
