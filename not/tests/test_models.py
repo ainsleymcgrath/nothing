@@ -1,5 +1,5 @@
-# pylint: disable=missing-function-docstring, redefined-outer-name, unused-argument
-# pylint: disable=invalid-name, no-self-use
+# pylint: disable=missing-function-docstring, redefined-outer-name, unused-argument,
+# pylint: disable=no-self-use
 
 """Tests for not.models"""
 from typing import Dict
@@ -20,7 +20,7 @@ from ..models import (
 yaml = YAML()
 
 
-class Test_context_items_from_yaml_list:
+class TestContextItemsFromYAMLList:
     """Test suite for not.models.context_items_from_yaml"""
 
     @pytest.fixture(scope="class")
@@ -71,7 +71,7 @@ class Test_context_items_from_yaml_list:
         ), "When None is passed, None is returned"
 
 
-class Test_steps_from_yaml_block:
+class TestStepsFromYAMLBlock:
     """Test suite for not.models.steps_from_yaml_block"""
 
     @pytest.fixture(scope="class")
