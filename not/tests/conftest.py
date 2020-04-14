@@ -2,7 +2,7 @@
 import pytest
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def super_minimal_task_spec_file_content():
     """The bare minimum spec: just a title and newline-delimited steps"""
 
@@ -17,7 +17,7 @@ def super_minimal_task_spec_file_content():
     """
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def task_spec_with_context_as_simple_list():
     """A task spec that uses basic-style context"""
 
@@ -64,9 +64,14 @@ def task_spec_with_config_options():
 
 @pytest.fixture(scope="module")
 def task_spec_with_presets():
-    """A task spec that utilizes the presets features"""
+    """A task spec that utilizes presets"""
 
 
 @pytest.fixture(scope="module")
 def task_spec_using_expressions():
     """A task spec that uses Python expressions inside a template"""
+
+
+@pytest.fixture(scope="module")
+def task_spec_with_everything():
+    """A task spec with a value for every optional key"""
