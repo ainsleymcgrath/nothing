@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 import pytest
 
 from ..constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
-from ..filesystem import task_spec_location
+from ..filesystem import glob_each_extension, task_spec_location
 
 SAMPLE_TASK_SPEC_NAMES = [
     "code_review_checklist",
@@ -17,25 +17,26 @@ SAMPLE_TASK_SPEC_NAMES = [
 ]
 
 
+@pytest.fixture(scope="module")
+def dot_not_dir_with_a_file_of_each_extension() -> Path:
+    """The path to a directory containing 3 Task Spec files,
+    one with each of the valid extensions."""
+
+    with TemporaryDirectory() as tempdir:
+        for name, extension in zip(
+            SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES
+        ):
+            dot_nothing_directory = Path(tempdir) / DOT_NOTHING_DIRECTORY_NAME
+            dot_nothing_directory.mkdir(exist_ok=True)
+
+            task_spec = dot_nothing_directory / f"{name}.{extension}"
+            task_spec.touch(exist_ok=True)
+
+        yield tempdir
+
+
 class TestTaskSpecLocation:
     """Test suite for not.filesytem.task_spec_location"""
-
-    @pytest.fixture(scope="module")
-    def dot_not_dir_with_a_file_of_each_extension(self) -> Path:
-        """The path to a directory containing 3 Task Spec files,
-        one with each of the valid extensions."""
-
-        with TemporaryDirectory() as tempdir:
-            for name, extension in zip(
-                SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES
-            ):
-                dot_nothing_directory = Path(tempdir) / DOT_NOTHING_DIRECTORY_NAME
-                dot_nothing_directory.mkdir(exist_ok=True)
-
-                task_spec = dot_nothing_directory / f"{name}.{extension}"
-                task_spec.touch(exist_ok=True)
-
-            yield tempdir
 
     def test_task_spec_location_finds_any_extension_under_home_dot_nothing_dir(
         self, dot_not_dir_with_a_file_of_each_extension, monkeypatch
@@ -128,3 +129,79 @@ class TestTaskSpecLocation:
         monkeypatch.setattr(Path, "cwd", mock_dir)
         location = task_spec_location(SAMPLE_TASK_SPEC_NAMES[0])
         assert location is None
+
+
+class TestGlobEachExtension:
+    """Test suite for not.filesystem.glob_each_extension"""
+
+    HTML_FILE = "bar.html"
+    PYTHON_FILE = "foo.py"
+    NESTED_DIRECTORY = "buzz"
+    SUPERFLUOUS_FILE_UNDER_NESTED_DIR = "fizz.clj"
+    RELEVANT_FILE_UNDER_NESTED_DIR = "foobar.not"
+
+    @pytest.fixture(scope="class")
+    def dir_with_a_file_of_each_extension_and_superfluous_files(
+        self, dot_not_dir_with_a_file_of_each_extension
+    ):
+        # repurposing the dot nothing dir since it has valid specs in it
+        dir_to_yield = (
+            Path(dot_not_dir_with_a_file_of_each_extension) / DOT_NOTHING_DIRECTORY_NAME
+        )
+        python_file = dir_to_yield / self.PYTHON_FILE
+        html_file = dir_to_yield / self.HTML_FILE
+
+        python_file.touch(exist_ok=True)
+        html_file.touch(exist_ok=True)
+
+        nested_directory = dir_to_yield / self.NESTED_DIRECTORY
+        file_under_nested_directory = (
+            nested_directory / self.SUPERFLUOUS_FILE_UNDER_NESTED_DIR
+        )
+        task_spec_under_nested_directory = (
+            nested_directory / self.RELEVANT_FILE_UNDER_NESTED_DIR
+        )
+
+        nested_directory.mkdir(exist_ok=True)
+        file_under_nested_directory.touch(exist_ok=True)
+        task_spec_under_nested_directory.touch(exist_ok=True)
+
+        yield dir_to_yield
+
+    def test_without_recurse(
+        self, dir_with_a_file_of_each_extension_and_superfluous_files
+    ):
+        task_spec_files_in_dir = glob_each_extension(
+            "*", dir_with_a_file_of_each_extension_and_superfluous_files
+        )
+
+        names_of_returned_files = (
+            path.name.split(".")[-2] for path in task_spec_files_in_dir
+        )
+        assert set(names_of_returned_files) == set(SAMPLE_TASK_SPEC_NAMES)
+        assert self.SUPERFLUOUS_FILE_UNDER_NESTED_DIR not in task_spec_files_in_dir
+
+    def test_with_recurse(
+        self, dir_with_a_file_of_each_extension_and_superfluous_files
+    ):
+        task_spec_files_in_dir = glob_each_extension(
+            "*", dir_with_a_file_of_each_extension_and_superfluous_files, recurse=True
+        )
+
+        names_of_returned_files = set(
+            path.name.split(".")[-2] for path in task_spec_files_in_dir
+        )
+        expected_names = {
+            self.RELEVANT_FILE_UNDER_NESTED_DIR.split(".")[-2],
+            *SAMPLE_TASK_SPEC_NAMES,
+        }
+
+        assert names_of_returned_files == expected_names
+
+
+class TestCWDTaskSpecs:
+    """Test suite for not.filesystem.cwd_task_specs"""
+
+
+class TestHomeDotNothingDirTaskSpecs:
+    """Test suite for not.filesystem.home_dot_nothing_dir_task_specs"""
