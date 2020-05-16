@@ -1,15 +1,16 @@
 """Global and local configuration options"""
-from typing import List
-
 from pydantic import BaseSettings
 
 
 class TaskSpecConfig(BaseSettings):
-    """Setting that can be set globally or inside a specific Task Spec file"""
+    """Setting that can be set globally or inside a specific Task Spec file.
+    The settings that make sense for usage on a specific file."""
 
     # content defaults
+    # XXX this and setting below followed by a colon, prolly put that here
     title_prefix: str = "Beginning task"
     step_prefix: str = "Step"
+    # TODO: add validator to make sure this has template
     context_prompt: str = "Please provide a value for {}"
     completion_message: str = "All done!"
 
