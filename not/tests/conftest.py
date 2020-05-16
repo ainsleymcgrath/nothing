@@ -1,4 +1,9 @@
+# pylint: disable=missing-function-docstring,unused-argument,invalid-name
+
 """Test fixtures that are shared across suites"""
+import json
+from typing import List
+
 import pytest
 
 
@@ -75,3 +80,20 @@ def task_spec_using_expressions():
 @pytest.fixture(scope="module")
 def task_spec_with_everything():
     """A task spec with a value for every optional key"""
+
+
+def pytest_assertrepr_compare(op, left, right):
+    if isinstance(left, dict) and isinstance(right, dict) and op == "==":
+
+        def linewise_pretty_dict_strings(d) -> List[str]:
+            return json.dumps(d, indent=2).split("\n")
+
+        return [
+            "Dictionaries are not equivalent:",
+            "",
+            "Left:",
+            *linewise_pretty_dict_strings(left),
+            "",
+            "Right:",
+            *linewise_pretty_dict_strings(right),
+        ]
