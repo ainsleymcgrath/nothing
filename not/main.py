@@ -5,8 +5,10 @@ import typer
 
 from . import runner
 from . import writer
+from .constants import DirectoryChoicesForListCommand
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import serialize_task_spec_file
+from .theatrics import show_fancy_list
 
 # from .theatrics import show_task_spec_overview
 from .filesystem import task_spec_location
@@ -53,6 +55,7 @@ def new(
     try:
         writer.write(task_spec, destination_dir)
     except FileExistsError:
+        # TODO lift this block into theatrics
         existence_warning = typer.style(
             f"🤔 Task Spec '{task_spec_name}' appears to exist already",
             fg=typer.colors.YELLOW,
@@ -85,9 +88,10 @@ def copy(existing_task_spec_name: str, new_task_spec_name: str):
 
 
 @app.command()
-def list(show_home: bool = True, show_local: bool = True, show_global: bool = False):
-    """Pretty print the location of every Task Spec file in cwd and ~.
-    If --global, find every Task Spec on the machine."""
+def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.both):
+    """Pretty print the location of every Task Spec file in cwd and/or $HOME."""
+
+    show_fancy_list(include)
 
 
 @app.command()

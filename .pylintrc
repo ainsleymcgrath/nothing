@@ -1,4 +1,4 @@
 [MASTER]
 
 disable=bad-continuation,inconsistent-return-statements
-good-names=config,settings,app,do,yaml,i
+good-names=config,settings,app,do,yaml,i,ls

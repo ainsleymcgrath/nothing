@@ -2,7 +2,7 @@
 from functools import partial
 from itertools import chain
 from pathlib import Path
-import re
+from textwrap import indent
 from typing import Dict, Iterable, Iterator, List, Literal
 
 
@@ -110,3 +110,15 @@ def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
     """Show a pretty output of the task spec files contained in the specified dir."""
 
     task_spec_names_by_directory: Dict = _collect_fancy_list_input(showing_from_dir)
+
+    for subdir_dict in task_spec_names_by_directory.values():
+        for dir_name, task_spec_list in subdir_dict.items():
+            subdir_header = typer.style(
+                indent(f"{dir_name}/", "  "), fg=typer.colors.CYAN
+            )
+            typer.echo(subdir_header)
+
+            for i, name in enumerate(task_spec_list):
+                typer.echo(indent(name, "    "))
+                if i == len(task_spec_list) - 1:
+                    typer.echo()
