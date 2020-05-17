@@ -28,7 +28,7 @@ class TestClean:
         yield clean(minimal_task_spec)
 
     def test_unset_fields_are_not_returned(self, cleaned_minimal_task_spec):
-        assert set(cleaned_minimal_task_spec) == {"title", "steps"}, (
+        assert set(cleaned_minimal_task_spec) == {"title", "steps", "context"}, (
             "The only keys on the dict returned are the ones "
             "explicitly set on the input TaskSpec"
         )
