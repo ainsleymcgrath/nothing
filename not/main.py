@@ -1,3 +1,5 @@
+# pylint: disable=too-many-arguments
+
 """The subcommands of `not`"""
 from pathlib import Path
 
@@ -37,11 +39,13 @@ def do(task_spec_name: str):
 
 @app.command()
 def new(
+    ctx: typer.Context,
     task_spec_name: str,
     destination_dir: Path = Path.cwd(),
     extension: str = "not",
-    expert: bool = True,
+    expert: bool = False,
     edit_after_write: bool = True,
+    overwrite: bool = False,
 ):
     """Template out a new Task Spec to the nearest .nothing directory
     and open with $EDITOR"""
@@ -52,33 +56,41 @@ def new(
         if not expert
         else TaskSpecCreateExpert(filename=task_spec_filename)
     )
+
     try:
-        writer.write(task_spec, destination_dir)
+        writer.write(task_spec, destination_dir, force=overwrite)
     except FileExistsError:
         # TODO lift this block into theatrics
         existence_warning = typer.style(
-            f"🤔 Task Spec '{task_spec_name}' appears to exist already",
+            f"🤔 Task Spec '{task_spec_name}' appears to exist already\n"
+            "Would you like to overwrite it?",
             fg=typer.colors.YELLOW,
         )
-        typer.echo(existence_warning)
-        # show_task_spec_overview(inspect(task_spec))
+
+        if typer.confirm(existence_warning, abort=True):
+            writer.write(task_spec, destination_dir, force=True)
 
         # TODO: Prompt some options: edit, overwrite, inspect, rename existing spec
-        return
+
+    if edit_after_write:
+        ctx.invoke(edit, task_spec_name=task_spec_name)
 
     success_message = typer.style("Success! 🙌", fg=typer.colors.GREEN)
     typer.echo(success_message)
     typer.echo(f"{task_spec_filename} written to {destination_dir.resolve()}")
 
-    if edit_after_write:
-        # TODO: open with the editor
-        pass
-
 
 @app.command()
-def edit(task_spec_name: str, rename: bool = False):
+def edit(
+    task_spec_name: str,
+    rename: str = typer.Option(
+        prompt="What should the new name be?", default="", confirmation_prompt=True
+    ),
+):
     """Edit existing Task Spec"""
-    pass
+
+    path_to_task_spec: Path = task_spec_location(task_spec_name).resolve()
+    typer.edit(filename=str(path_to_task_spec))
 
 
 @app.command()

@@ -1,5 +1,5 @@
 """Create Task Spec Files from TaskSpec objects"""
-from typing import Dict
+from typing import Dict, List, Union
 from pathlib import Path
 
 from ruamel.yaml import YAML
@@ -13,17 +13,16 @@ yaml = YAML()
 yaml.indent(mapping=2, sequence=4, offset=2)
 
 
-def write(task_spec: TaskSpec, destination_dir: Path):
+def write(task_spec: TaskSpec, destination_dir: Path, force: bool = False):
     """Output the YAML representation of a TaskSpec object
     to a file in destination_dir"""
 
     file_path: Path = destination_dir / task_spec.filename
-    file_path.touch(exist_ok=False)
+    file_path.touch(exist_ok=force)
 
     writable_task_spec: Dict = clean(task_spec)
 
-    with file_path.open(mode="w") as task_spec_file:
-        yaml.dump(writable_task_spec, task_spec_file)
+    yaml.dump(writable_task_spec, file_path)
 
 
 def clean(task_spec: TaskSpec) -> Dict:
@@ -41,8 +40,15 @@ def clean(task_spec: TaskSpec) -> Dict:
             STEP_SEPARATOR.join(step.prompt for step in task_spec.steps).rstrip()
         )
     }
+    context_as_list_of_mappings: Dict[str, List[Union[Dict, str]]] = {
+        "context": [
+            {item.var_name: item.prompt} if item.is_complex else item.var_name
+            for item in task_spec.context
+        ]
+    }
 
     return {
         **task_spec_sans_exclusions,
         **steps_as_literal_scalar_string,
+        **context_as_list_of_mappings,
     }

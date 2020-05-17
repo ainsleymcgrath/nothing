@@ -58,6 +58,7 @@ def context_items_from_yaml_list(
         return ContextItem(var_name=context_item, prompt=interpolated_prompt)
 
     def _from_complex(context_item: Dict):
+        # TODO: bad docstring
         """The dictionary key serves as the var name. The value serves as the prompt."""
         var_name, prompt = next(iter(context_item.items()))
         return ContextItem(var_name=var_name, prompt=prompt)
@@ -89,6 +90,9 @@ class TaskSpecCreate(TaskSpec):
     filename: str
     title = config.default_title
     steps: List[Step] = steps_from_yaml_block(config.default_steps)
+    context: List[ContextItem] = context_items_from_yaml_list(
+        config.default_context_list
+    )
 
 
 class TaskSpecCreateExpert(TaskSpec):
