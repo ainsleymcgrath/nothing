@@ -3,7 +3,7 @@ from functools import partial
 from itertools import chain
 from pathlib import Path
 from textwrap import indent
-from typing import Dict, Iterable, Iterator, List, Literal
+from typing import Dict, Iterator
 
 
 import typer
@@ -11,13 +11,22 @@ import typer
 from .constants import (
     DirectoryChoicesForListCommand,
     DOT_NOTHING_DIRECTORY_NAME,
-    TASK_SPEC_EXT_PATTERN,
 )
-from .filesystem import glob_each_extension
+from .filesystem import (
+    glob_each_extension,
+    task_spec_names_by_parent_dir_name,
+)
 from .models import TaskSpecInspection
 
 
 def dramatic_title(title):
+    """A title that
+
+    ###############
+    Looks Like This
+    ###############
+    """
+
     border = "=" * len(title)
     typer.echo(border)
     typer.echo(title)
@@ -25,46 +34,17 @@ def dramatic_title(title):
     typer.echo()
 
 
-spacious_print = partial(print, end="\n\n")
+def spacious_print(*args):
+    """Print with double newlines"""
+
+    return partial(print, end="\n\n")
+
 
 # TODO: on a given step, color the last line as code
 
 
 def show_task_spec_overview(inspection: TaskSpecInspection):
     pass
-
-
-# TODO: move helpers to filesystem
-def _friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
-    """Take a long path and return it with a friendly . or ~ where applicable"""
-
-    prefixes_by_location = {"home": "~", "cwd": "."}
-    verbose_prefix = str(getattr(Path, location)())
-
-    return str(path).replace(verbose_prefix, prefixes_by_location[location])
-
-
-def _task_spec_names_by_parent_dir_name(
-    paths: Iterable[Path], base_dir: Literal["home", "cwd"] = None
-) -> Dict[str, List[str]]:
-    """Helper for _collect_fancy_list_input.
-    Returns a dict with friendly path name keys and lists of friendly task spec
-    names as values."""
-
-    accum_dict = {}
-
-    for path in paths:
-        if not path.is_file():
-            continue
-
-        key = _friendly_prefix_for_path(path.parent, base_dir)
-        if key in accum_dict:
-            accum_dict[key] += [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
-            continue
-
-        accum_dict[key] = [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
-
-    return accum_dict
 
 
 def _collect_fancy_list_input(
@@ -87,7 +67,7 @@ def _collect_fancy_list_input(
             "*", (Path.home() / DOT_NOTHING_DIRECTORY_NAME), recurse=True
         )
 
-        names_by_dir["home"] = _task_spec_names_by_parent_dir_name(
+        names_by_dir["home"] = task_spec_names_by_parent_dir_name(
             task_specs_in_home_dot_nothing_dir, base_dir="home"
         )
 
@@ -100,7 +80,7 @@ def _collect_fancy_list_input(
             task_specs_in_cwd_dot_nothing_dir, dot_not_files_in_cwd
         )
 
-        names_by_dir["cwd"] = _task_spec_names_by_parent_dir_name(
+        names_by_dir["cwd"] = task_spec_names_by_parent_dir_name(
             any_task_specs_in_cwd, base_dir="cwd"
         )
 
