@@ -101,7 +101,7 @@ def copy(existing_task_spec_name: str, new_task_spec_name: str):
 
 @app.command()
 def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.both):
-    """Pretty print the location of every Task Spec file in cwd and/or $HOME."""
+    """Display the location of every Task Spec in cwd and/or $HOME"""
 
     show_fancy_list(include)
 

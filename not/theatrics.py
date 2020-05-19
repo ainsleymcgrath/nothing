@@ -34,6 +34,7 @@ def show_task_spec_overview(inspection: TaskSpecInspection):
     pass
 
 
+# TODO: move helpers to filesystem
 def _friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
     """Take a long path and return it with a friendly . or ~ where applicable"""
 
@@ -111,7 +112,13 @@ def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
 
     task_spec_names_by_directory: Dict = _collect_fancy_list_input(showing_from_dir)
 
-    for subdir_dict in task_spec_names_by_directory.values():
+    for base_dir, subdir_dict in task_spec_names_by_directory.items():
+        header = typer.style(
+            f"[ {'GLOBAL' if base_dir == 'home' else 'LOCAL'} ]\n",
+            typer.colors.BRIGHT_BLUE,
+        )
+        typer.echo(header)
+
         for dir_name, task_spec_list in subdir_dict.items():
             subdir_header = typer.style(
                 indent(f"{dir_name}/", "  "), fg=typer.colors.CYAN
