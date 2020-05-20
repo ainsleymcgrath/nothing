@@ -2,8 +2,9 @@
 from functools import partial
 from itertools import chain
 from pathlib import Path
+from string import Formatter
 from textwrap import indent
-from typing import Dict, Iterator
+from typing import Any, Dict, Iterator, Optional, Tuple
 
 
 import typer
@@ -41,6 +42,19 @@ def spacious_print(*args):
 
 
 # TODO: on a given step, color the last line as code
+
+
+def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
+    """Allows the caller to receive the values from a series of prompts
+    in the order they were passed. A "prompt" here is a tuple containing an
+    echo-able (usually a string), dictionary of any kwargs to pass to typer.prompt."""
+
+    for prompt, prompt_kwargs in prompts:
+        if "default" in prompt_kwargs:
+            prompt = prompt.format(prompt_kwargs["default"])
+
+        value = typer.prompt(prompt, **prompt_kwargs)
+        yield value
 
 
 def show_task_spec_overview(inspection: TaskSpecInspection):
