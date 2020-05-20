@@ -2,9 +2,8 @@
 from functools import partial
 from itertools import chain
 from pathlib import Path
-from string import Formatter
 from textwrap import indent
-from typing import Any, Dict, Iterator, Optional, Tuple
+from typing import Any, Dict, Iterator, Tuple
 
 
 import typer
@@ -123,3 +122,24 @@ def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
                 typer.echo(indent(name, "    "))
                 if i == len(task_spec_list) - 1:
                     typer.echo()
+
+
+def confirm_overwrite(task_spec_name) -> bool:
+    """Prompt y/n when user is attempting to create a Task Spec with the same
+    name as an existing one"""
+
+    existence_warning = typer.style(
+        f"🤔 Task Spec '{task_spec_name}' appears to exist already\n"
+        "Would you like to overwrite it?",
+        fg=typer.colors.YELLOW,
+    )
+
+    return typer.confirm(existence_warning, abort=True)
+
+
+def success(message) -> None:
+    """Echo the message with a stylish interjection above it"""
+
+    stylish_interjection = typer.style("Success! 🙌", fg=typer.colors.GREEN)
+    typer.echo(stylish_interjection)
+    typer.echo(message)

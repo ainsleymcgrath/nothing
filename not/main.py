@@ -10,7 +10,7 @@ from . import writer
 from .constants import DirectoryChoicesForListCommand
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import deserialize_task_spec_file
-from .theatrics import multiprompt, show_fancy_list
+from .theatrics import confirm_overwrite, multiprompt, show_fancy_list, success
 
 # from .theatrics import show_task_spec_overview
 from .filesystem import task_spec_location
@@ -48,8 +48,8 @@ def new(
     overwrite: bool = False,
     interactive: bool = True,  # make this a config default
 ):
-    """Template out a new Task Spec to the nearest .nothing directory
-    and open with $EDITOR"""
+    """Template out a new Task Spec to the nearest .nothing directory and open with
+    $EDITOR. When no arguments are provided, Task Spec is configured interactively."""
 
     if interactive or task_spec_name is None:
         (
@@ -78,24 +78,13 @@ def new(
             task_spec, destination_dir.expanduser(), force=interactive or overwrite
         )
     except FileExistsError:
-        # TODO lift this block into theatrics
-        existence_warning = typer.style(
-            f"🤔 Task Spec '{task_spec_name}' appears to exist already\n"
-            "Would you like to overwrite it?",
-            fg=typer.colors.YELLOW,
-        )
-
-        if typer.confirm(existence_warning, abort=True):
-            writer.write(task_spec, destination_dir, force=True)
-
-        # TODO: Prompt some options: edit, overwrite, inspect, rename existing spec
+        if confirm_overwrite(task_spec_name):
+            writer.write(task_spec_name, destination_dir.expanduser(), force=True)
 
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=task_spec_name)
 
-    success_message = typer.style("Success! 🙌", fg=typer.colors.GREEN)
-    typer.echo(success_message)
-    typer.echo(f"{task_spec_filename} written to {destination_dir.resolve()}")
+    success(f"{task_spec_filename} written to {destination_dir.resolve()}")
 
 
 @app.command()
