@@ -1,5 +1,4 @@
 """pretty printing utilities for not"""
-from functools import partial
 from itertools import chain
 from pathlib import Path
 from textwrap import indent
@@ -8,6 +7,7 @@ from typing import Any, Dict, Iterator, Tuple
 
 import typer
 
+from .config import GlobalConfig
 from .constants import (
     DirectoryChoicesForListCommand,
     DOT_NOTHING_DIRECTORY_NAME,
@@ -16,7 +16,10 @@ from .filesystem import (
     glob_each_extension,
     task_spec_names_by_parent_dir_name,
 )
-from .models import TaskSpecInspection
+from .models import Step, TaskSpec, TaskSpecInspection
+
+
+config = GlobalConfig()
 
 
 def dramatic_title(title):
@@ -34,13 +37,39 @@ def dramatic_title(title):
     typer.echo()
 
 
-def spacious_print(*args):
-    """Print with double newlines"""
+def interactive_walkthrough(task_spec: TaskSpec) -> None:
+    """Interactively walk through a task spec"""
 
-    return partial(print, end="\n\n")
+    # XXX use spec-level config
+    dramatic_title(f"{config.title_prefix}: {task_spec.title}")
+
+    context_dict = {}
+
+    if task_spec.context:
+        for item in task_spec.context:
+            context_value = typer.prompt(item.prompt)
+            context_dict[item.var_name] = context_value
+
+    typer.echo()
+    for step in task_spec.steps:
+        run_step(
+            step, context_dict,
+        )
+
+    typer.echo(config.completion_message)
 
 
-# TODO: on a given step, color the last line as code
+def run_step(step: Step, context: Dict):
+    """Run just one Step in a TaskSpec"""
+    typer.echo(f"{config.step_prefix} {step.number}:")
+
+    try:
+        typer.echo(step.prompt.format(**context) + "\n")
+    except KeyError:
+        typer.echo(step.prompt + "\n")
+
+    input("Press enter to continue...")
+    typer.echo()
 
 
 def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:

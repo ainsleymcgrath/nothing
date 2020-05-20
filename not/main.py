@@ -5,17 +5,20 @@ from pathlib import Path
 
 import typer
 
-from . import runner
 from . import writer
 from .constants import DirectoryChoicesForListCommand
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import deserialize_task_spec_file
-from .theatrics import confirm_overwrite, multiprompt, show_fancy_list, success
+from .theatrics import (
+    confirm_overwrite,
+    interactive_walkthrough,
+    multiprompt,
+    show_fancy_list,
+    show_task_spec_overview,
+    success,
+)
 
-# from .theatrics import show_task_spec_overview
 from .filesystem import task_spec_location
-
-# from .utils import inspect
 
 
 app = typer.Typer(help="Nothing helps coder be more smarter & less dumber.")
@@ -34,7 +37,7 @@ def do(task_spec_name: str):
         typer.echo("Hmmm...doesn't look like there's a spec for that task.")
         return
 
-    runner.run(task_spec)
+    interactive_walkthrough(task_spec)
 
 
 @app.command()
