@@ -14,7 +14,7 @@ from .models import (
 yaml = YAML()
 
 
-def serialize_task_spec_file(task_spec_content: str) -> TaskSpec:
+def deserialize_task_spec_file(task_spec_content: str) -> TaskSpec:
     """Take the content of a Task Spec file, try to find the corresponding file,
     return it as a TaskSpec object"""
 
