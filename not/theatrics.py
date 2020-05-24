@@ -78,10 +78,8 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
     echo-able (usually a string), dictionary of any kwargs to pass to typer.prompt."""
 
     for prompt, prompt_kwargs in prompts:
-        if "default" in prompt_kwargs:
-            prompt = prompt.format(prompt_kwargs["default"])
-
         value = typer.prompt(prompt, **prompt_kwargs)
+
         yield value
 
 
