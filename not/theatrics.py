@@ -172,3 +172,12 @@ def success(message) -> None:
     stylish_interjection = typer.style("Success! 🙌", fg=typer.colors.GREEN)
     typer.echo(stylish_interjection)
     typer.echo(message)
+
+
+def warn_missing_file(name):
+    """A generic warning when a Task Spec with the specified name does not exist"""
+
+    message = typer.style(
+        f"😕 It doesn't look like there's a spec for '{name}'.", fg=typer.colors.YELLOW
+    )
+    typer.echo(message)
