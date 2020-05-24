@@ -82,7 +82,7 @@ def new(
         )
     except FileExistsError:
         if confirm_overwrite(task_spec_name):
-            writer.write(task_spec_name, destination_dir.expanduser(), force=True)
+            writer.write(task_spec, destination_dir.expanduser(), force=True)
 
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=task_spec_name)
