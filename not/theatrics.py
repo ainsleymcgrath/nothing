@@ -78,9 +78,25 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
     echo-able (usually a string), dictionary of any kwargs to pass to typer.prompt."""
 
     for prompt, prompt_kwargs in prompts:
-        value = typer.prompt(prompt, **prompt_kwargs)
+        value = ask(prompt, **prompt_kwargs)
 
         yield value
+
+
+def prompt_for_new_args(
+    default_extension=None, default_destination=None, expert=None, edit_after_write=None
+) -> Iterator[Any]:
+    """Prompt for all arguments needed to perform `not do`"""
+
+    prompts = (
+        ("The title of your Task Spec", {}),
+        ("Extension", {"default": default_extension}),
+        ("Destination directory", {"default": default_destination, "type": Path}),
+        ("Extra config? (like --expert)", {"default": expert, "type": bool}),
+        ("Open $EDITOR now?", {"default": edit_after_write, "type": bool}),
+    )
+
+    return multiprompt(*prompts)
 
 
 def prompt_for_copy_args(
@@ -189,6 +205,15 @@ def success(message) -> None:
     stylish_interjection = typer.style("Success! 🙌", fg=typer.colors.GREEN)
     typer.echo(stylish_interjection)
     typer.echo(message)
+
+
+def ask(question, **prompt_kwargs) -> Any:
+    """Prompt the user with a question"""
+
+    styled_question = typer.style(question, fg=typer.colors.BRIGHT_BLACK)
+    answer = typer.prompt(styled_question, **prompt_kwargs)
+
+    return answer
 
 
 def warn_missing_file(name):

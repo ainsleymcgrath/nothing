@@ -10,11 +10,12 @@ from .constants import DirectoryChoicesForListCommand
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import deserialize_task_spec_file
 from .theatrics import (
+    ask,
     confirm_overwrite,
     interactive_walkthrough,
     warn_missing_file,
-    multiprompt,
     prompt_for_copy_args,
+    prompt_for_new_args,
     show_fancy_list,
     show_task_spec_overview,
     success,
@@ -57,19 +58,20 @@ def new(
     $EDITOR. When no arguments are provided, Task Spec is configured interactively."""
 
     if interactive or task_spec_name is None:
+        defaults = {
+            "default_extension": extension,
+            "default_destination": destination_dir,
+            "expert": expert,
+            "edit_after_write": edit_after_write,
+        }
+
         (
             task_spec_name,
             extension,
             destination_dir,
             expert,
             edit_after_write,
-        ) = multiprompt(
-            ("The title of your Task Spec", {}),
-            ("Extension", {"default": extension}),
-            ("Destination directory", {"default": destination_dir, "type": Path}),
-            ("Extra config? (like --expert)", {"default": expert, "type": bool}),
-            ("Open $EDITOR now?", {"default": edit_after_write, "type": bool}),
-        )
+        ) = prompt_for_new_args(**defaults)
 
     task_spec_filename = f"{task_spec_name}.{extension}"
     task_spec: TaskSpec = (
@@ -100,13 +102,11 @@ def edit(
     path_to_task_spec: Path = task_spec_location(task_spec_name).resolve()
 
     if rename:
-        rename_prompt = typer.style(
-            "What is the new name for the file? 📝", fg=typer.colors.BLUE
-        )
-        # TODO
-        new_name = typer.prompt(rename_prompt)
+        new_name = ask("What is the new name for the file? 📝")
+        path_to_task_spec.rename(path_to_task_spec.parent / new_name)
 
     typer.edit(filename=str(path_to_task_spec))
+    success("Edited {task_spec_name}")
 
 
 @app.command()
