@@ -85,6 +85,25 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
         yield value
 
 
+def prompt_for_copy_args(
+    default_title=None,
+    default_destination=None,
+    default_extension=None,
+    edit_after_write=None,
+) -> Iterator[Any]:
+    """Prompt for all arguments needed to perform `not copy`"""
+
+    prompts = (
+        ("New Task Spec name", {}),
+        ("New Task Spec title", {"default": default_title, "type": str}),
+        ("Destination dir for copy", {"default": default_destination, "type": Path}),
+        ("Extension for new Task Spec", {"default": default_extension, "type": str}),
+        ("Edit after write?", {"default": edit_after_write, "type": bool},),
+    )
+
+    return multiprompt(*prompts)
+
+
 def show_task_spec_overview(inspection: TaskSpecInspection):
     pass
 

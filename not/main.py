@@ -12,7 +12,9 @@ from .reader import deserialize_task_spec_file
 from .theatrics import (
     confirm_overwrite,
     interactive_walkthrough,
+    warn_missing_file,
     multiprompt,
+    prompt_for_copy_args,
     show_fancy_list,
     show_task_spec_overview,
     success,
@@ -30,12 +32,12 @@ def do(task_spec_name: str):
 
     file_location: Path = task_spec_location(task_spec_name)
 
+    if file_location is None:
+        warn_missing_file(task_spec_name)
+        return
+
     with file_location.open() as file:
         task_spec: TaskSpec = deserialize_task_spec_file(file.read())
-
-    if task_spec is None:
-        typer.echo("Hmmm...doesn't look like there's a spec for that task.")
-        return
 
     interactive_walkthrough(task_spec)
 
@@ -101,15 +103,65 @@ def edit(
         rename_prompt = typer.style(
             "What is the new name for the file? 📝", fg=typer.colors.BLUE
         )
+        # TODO
         new_name = typer.prompt(rename_prompt)
 
     typer.edit(filename=str(path_to_task_spec))
 
 
 @app.command()
-def copy(existing_task_spec_name: str, new_task_spec_name: str):
+def copy(
+    ctx: typer.Context,
+    existing_task_spec_name: str,
+    new_task_spec_name=typer.Argument(None),
+    new_title: str = None,
+    destination_dir: Path = None,
+    new_extension: str = None,
+    edit_after_write: bool = False,
+):
     """Copy an old Task Spec to a new one with the provided name"""
-    pass
+
+    original_file: Path = task_spec_location(existing_task_spec_name)
+
+    if original_file is None:
+        warn_missing_file(existing_task_spec_name)
+        return
+
+    old_task_spec: TaskSpec = deserialize_task_spec_file(original_file)
+    interactive = existing_task_spec_name is not None or new_task_spec_name is not None
+
+    if interactive:
+        extension_without_dot = original_file.suffix.lstrip(".")
+        defaults = {
+            "default_title": old_task_spec.title,
+            "default_destination": original_file.parent,  #  TODO use friendly prefix here
+            "default_extension": extension_without_dot,  # TODO enum for extensions
+            "edit_after_write": edit_after_write,
+        }
+
+        (
+            new_task_spec_name,
+            new_title,
+            destination_dir,
+            new_extension,
+            edit_after_write,
+        ) = prompt_for_copy_args(**defaults)
+
+    new_filename = f"{new_task_spec_name}.{new_extension}"
+    new_task_spec: TaskSpec = old_task_spec.copy(
+        update={"filename": new_filename, "title": new_title}
+    )
+
+    try:
+        writer.write(new_task_spec, destination_dir.expanduser())
+    except FileExistsError:
+        if confirm_overwrite(new_task_spec_name):
+            writer.write(new_task_spec, destination_dir.expanduser(), force=True)
+
+    if edit_after_write:
+        ctx.invoke(edit, task_spec_name=new_task_spec_name)
+
+    success(f"Copy of {existing_task_spec_name} written to {destination_dir.resolve()}")
 
 
 @app.command()
@@ -127,5 +179,8 @@ def drop(existing_task_spec_name: str, no_confirm: bool = False):
 
 @app.command()
 def describe(task_spec_name: str):
-    """Display a little summary of the Task Spec"""
+    """Display a little overview of the Task Spec"""
+    # count steps
+    # created / modified date
+    # title, description, author
     pass
