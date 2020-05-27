@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 
 from . import writer
+from .config import GlobalConfig
 from .constants import DirectoryChoicesForListCommand
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import deserialize_task_spec_file
@@ -25,6 +26,7 @@ from .filesystem import task_spec_location
 
 
 app = typer.Typer(help="Nothing helps coder be more smarter & less dumber.")
+config = GlobalConfig()
 
 
 @app.command()
@@ -47,12 +49,12 @@ def do(task_spec_name: str):
 def new(
     ctx: typer.Context,
     task_spec_name: str = typer.Argument(None),
-    destination_dir: Path = Path.cwd(),
+    destination_dir: Path = config.default_destination_dir,
     extension: str = "not",
     expert: bool = False,
-    edit_after_write: bool = True,
+    edit_after_write: bool = config.edit_after_write,
     overwrite: bool = False,
-    interactive: bool = True,  # make this a config default
+    interactive: bool = config.interactive_new,
 ):
     """Template out a new Task Spec to the nearest .nothing directory and open with
     $EDITOR. When no arguments are provided, Task Spec is configured interactively."""
@@ -72,6 +74,7 @@ def new(
             expert,
             edit_after_write,
         ) = prompt_for_new_args(**defaults)
+        # XXX how to skip prompt when name is specified?
 
     task_spec_filename = f"{task_spec_name}.{extension}"
     task_spec: TaskSpec = (
@@ -134,7 +137,7 @@ def copy(
         extension_without_dot = original_file.suffix.lstrip(".")
         defaults = {
             "default_title": old_task_spec.title,
-            "default_destination": original_file.parent,  #  TODO use friendly prefix here
+            "default_destination": original_file.parent,  # TODO use friendly prefix here
             "default_extension": extension_without_dot,  # TODO enum for extensions
             "edit_after_write": edit_after_write,
         }
@@ -174,7 +177,6 @@ def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.
 @app.command()
 def drop(existing_task_spec_name: str, no_confirm: bool = False):
     """Permanently delete a task spec file. Confirm before doing unless specified"""
-    pass
 
 
 @app.command()
@@ -183,4 +185,3 @@ def describe(task_spec_name: str):
     # count steps
     # created / modified date
     # title, description, author
-    pass

@@ -41,7 +41,7 @@ def interactive_walkthrough(task_spec: TaskSpec) -> None:
     """Interactively walk through a task spec"""
 
     # XXX use spec-level config
-    dramatic_title(f"{config.title_prefix}: {task_spec.title}")
+    dramatic_title(f"{task_spec.config.title_prefix}: {task_spec.title}")
 
     context_dict = {}
 

@@ -1,5 +1,7 @@
 """Global and local configuration options"""
-from pydantic import BaseSettings
+from pathlib import Path
+
+from pydantic import BaseSettings, Field
 
 
 class TaskSpecConfig(BaseSettings):
@@ -11,6 +13,7 @@ class TaskSpecConfig(BaseSettings):
     title_prefix: str = "Beginning task"
     step_prefix: str = "Step"
     # TODO: add validator to make sure this has template
+    # TODO: this should be global?
     context_prompt: str = "Please provide a value for {}"
     completion_message: str = "All done!"
 
@@ -18,20 +21,22 @@ class TaskSpecConfig(BaseSettings):
     color: bool = True
 
     # interaction
-    fine_controls: bool = True
+    # XXX probably will not implement
 
 
-class GlobalConfig(TaskSpecConfig):
-    """Adds in settings that don't make sense at the individual-spec level"""
+class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
+    """Adds in application level settings that don't
+    make sense at the individual-spec level"""
 
     # content defaults
     default_title: str = "Do Nothing"
     default_context_list = [{"name": "What's your name?"}]
-    default_presets = [{"apology": "Sorry, {name}. That was cheesy. But it's true!"}]
+    default_presets = [{"apology": "I know hat was cheesy, {name}. But it's true!"}]
     default_steps: str = (
         "Take 3 deep breaths, {name}.\n\n"
-        "Be still for a moment\n\n"
-        "Recall that you are irreplaceable."
+        "Find a comfortable position in your seat.\n\n"
+        "Begin to breathe lightly and slowly, as if you're going to sleep.\n\n"
+        "Close your eyes and count 10 of your gentle breaths."
     )
     default_steps_expert: str = (
         "Take 3 deep breaths, {name}.\n\n"
@@ -40,7 +45,7 @@ class GlobalConfig(TaskSpecConfig):
         "{apology}"
     )
 
-    # interaction
-    editor = str
-    edit_on_new: bool = True
-    fine_controls: bool = True
+    # commands
+    interactive_new: bool = True
+    edit_after_write: bool = True
+    default_destination_dir: Path = Path.cwd()
