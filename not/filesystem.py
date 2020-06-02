@@ -56,6 +56,7 @@ def task_spec_location(task_spec_name: str) -> Union[Path, None]:
 def friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
     """Take a long path and return it with a friendly . or ~ where applicable"""
 
+    # TODO ditch the location kwarg, do check if path is child of cwd?
     prefixes_by_location = {"home": "~", "cwd": "."}
     verbose_prefix = str(getattr(Path, location)())
 
