@@ -1,7 +1,8 @@
 """Global and local configuration options"""
 from pathlib import Path
+from pydantic import BaseSettings
 
-from pydantic import BaseSettings, Field
+from .localization import polyglot as glot
 
 
 class TaskSpecConfig(BaseSettings):
@@ -10,12 +11,12 @@ class TaskSpecConfig(BaseSettings):
 
     # content defaults
     # XXX this and setting below followed by a colon, prolly put that here
-    title_prefix: str = "Beginning task"
-    step_prefix: str = "Step"
+    title_prefix = glot["title_prefix"]
+    step_prefix = glot["step_prefix"]
     # TODO: add validator to make sure this has template
     # TODO: this should be global?
-    context_prompt: str = "Please provide a value for {}"
-    completion_message: str = "All done!"
+    context_prompt = glot["context_prompt"]
+    completion_message = glot["completion_message"]
 
     # aesthetics
     color: bool = True
@@ -29,21 +30,15 @@ class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
     make sense at the individual-spec level"""
 
     # content defaults
-    default_title: str = "Do Nothing"
-    default_context_list = [{"name": "What's your name?"}]
-    default_presets = [{"apology": "I know hat was cheesy, {name}. But it's true!"}]
-    default_steps: str = (
-        "Take 3 deep breaths, {name}.\n\n"
-        "Find a comfortable position in your seat.\n\n"
-        "Begin to breathe lightly and slowly, as if you're going to sleep.\n\n"
-        "Close your eyes and count 10 of your gentle breaths."
-    )
-    default_steps_expert: str = (
-        "Take 3 deep breaths, {name}.\n\n"
-        "Be still for a moment\n\n"
-        "Recall that you are irreplaceable.\n\n"
-        "{apology}"
-    )
+    default_title = glot["default_title"]
+    default_context_list = [{
+        glot["default_context_name_name"]: glot["default_context_name_prompt"]
+    }]
+    default_presets = [{
+        glot["default_presets_name"]: glot["default_presets_response"]
+    }]
+    default_steps = glot["default_steps"]
+    default_steps_expert = glot["default_steps_expert"]
 
     # commands
     interactive_new: bool = True

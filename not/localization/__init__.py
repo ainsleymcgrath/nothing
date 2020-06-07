@@ -16,8 +16,7 @@ from pathlib import Path
 from platform import system
 from typing import Dict, NamedTuple, Set, Union
 
-DEFAULT_LOCALE = normalize("en")
-STRINGS_SUPPORTED = {"Hello"}
+from .constants import DEFAULT_LOCALE, STRINGS_SUPPORTED
 
 
 class _LocaleConfig(NamedTuple):

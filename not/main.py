@@ -8,6 +8,7 @@ import typer
 from . import writer
 from .config import GlobalConfig
 from .constants import DirectoryChoicesForListCommand
+from .localization import polyglot as glot
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .reader import deserialize_task_spec_file
 from .theatrics import (
@@ -25,7 +26,7 @@ from .theatrics import (
 from .filesystem import task_spec_location
 
 
-app = typer.Typer(help="Nothing helps coder be more smarter & less dumber.")
+app = typer.Typer(help=glot["help"])
 config = GlobalConfig()
 
 
@@ -94,7 +95,10 @@ def new(
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=task_spec_name)
 
-    success(f"{task_spec_filename} written to {destination_dir.resolve()}")
+    success(glot.localized(
+        "file_written",
+        {"filename": task_spec_filename, "destination": destination_dir.resolve()}
+    ))
 
 
 @app.command()
@@ -105,11 +109,11 @@ def edit(
     path_to_task_spec: Path = task_spec_location(task_spec_name).resolve()
 
     if rename:
-        new_name = ask("What is the new name for the file? 📝")
+        new_name = ask(glot["filename_prompt"])
         path_to_task_spec.rename(path_to_task_spec.parent / new_name)
 
     typer.edit(filename=str(path_to_task_spec))
-    success("Edited {task_spec_name}")
+    success(glot.localized("file_edited", {"name": "task_spec_name"}))
 
 
 @app.command()
@@ -164,7 +168,9 @@ def copy(
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=new_task_spec_name)
 
-    success(f"Copy of {existing_task_spec_name} written to {destination_dir.resolve()}")
+    success(glot.localized(
+        "copied", {"name": existing_task_spec_name, "destination": destination_dir.resolve()}
+    ))
 
 
 @app.command()
