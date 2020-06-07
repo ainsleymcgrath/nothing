@@ -15,6 +15,7 @@ colorama = "^0.4.3"
 typer = "^0.1.0"
 pydantic = "^1.4"
 "ruamel.yaml" = "^0.16.10"
+typing-extensions = "^3.7.4"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.4.4"

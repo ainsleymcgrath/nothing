@@ -1,7 +1,8 @@
 """filesystem utilities for not"""
 from itertools import chain
 from pathlib import Path
-from typing import Dict, Iterable, Iterator, List, Literal, Union
+from typing_extensions import Literal
+from typing import Dict, Iterable, Iterator, List, Union
 
 from .constants import (
     DOT_NOTHING_DIRECTORY_NAME,
