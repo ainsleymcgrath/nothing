@@ -71,7 +71,7 @@ class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
                     "cwd": {
                         "./.nothing": ["pasta-from-scratch"],
                         "./nested": ["find-yourself"],
-                    },
+                    }
                 },
             ),
             (

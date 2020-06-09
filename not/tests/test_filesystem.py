@@ -14,11 +14,7 @@ from ..filesystem import (
     task_spec_location,
 )
 
-SAMPLE_TASK_SPEC_NAMES = [
-    "code_review_checklist",
-    "release_hounds",
-    "dazzle_friends",
-]
+SAMPLE_TASK_SPEC_NAMES = ["code_review_checklist", "release_hounds", "dazzle_friends"]
 
 
 @pytest.fixture

@@ -3,7 +3,7 @@ title: A sample set of do-nothing instructions
 
 # the user will be prompted to provide these values
 # and the values will persist through the run
-context: 
+context:
   - current_user_name
   - what_user_accomplished_today
 

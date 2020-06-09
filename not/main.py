@@ -19,7 +19,7 @@ from .theatrics import (
     prompt_for_copy_args,
     prompt_for_new_args,
     show_fancy_list,
-    show_task_spec_overview,
+    # show_task_spec_overview,
     success,
 )
 
@@ -95,16 +95,16 @@ def new(
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=task_spec_name)
 
-    success(glot.localized(
-        "file_written",
-        {"filename": task_spec_filename, "destination": destination_dir.resolve()}
-    ))
+    success(
+        glot.localized(
+            "file_written",
+            {"filename": task_spec_filename, "destination": destination_dir.resolve()},
+        )
+    )
 
 
 @app.command()
-def edit(
-    task_spec_name: str, rename: bool = False,
-):
+def edit(task_spec_name: str, rename: bool = False):
     """Edit existing Task Spec"""
     path_to_task_spec: Path = task_spec_location(task_spec_name).resolve()
 
@@ -141,7 +141,7 @@ def copy(
         extension_without_dot = original_file.suffix.lstrip(".")
         defaults = {
             "default_title": old_task_spec.title,
-            "default_destination": original_file.parent,  # TODO use friendly prefix here
+            "default_destination": original_file.parent,  # TODO use friendly prefix
             "default_extension": extension_without_dot,  # TODO enum for extensions
             "edit_after_write": edit_after_write,
         }
@@ -168,9 +168,12 @@ def copy(
     if edit_after_write:
         ctx.invoke(edit, task_spec_name=new_task_spec_name)
 
-    success(glot.localized(
-        "copied", {"name": existing_task_spec_name, "destination": destination_dir.resolve()}
-    ))
+    success(
+        glot.localized(
+            "copied",
+            {"name": existing_task_spec_name, "destination": destination_dir.resolve()},
+        )
+    )
 
 
 @app.command()

@@ -6,7 +6,7 @@ Nothing help coder be more smarter, some cooler, less dumber. `not`.
 
 Once upon a time we all read this brief article about ["do-nothing scripting"](https://blog.danslimmon.com/2019/07/15/do-nothing-scripting-the-key-to-gradual-automation/).
 
-Very cool, but even those scripts take time! 
+Very cool, but even those scripts take time!
 
 [Juxtapose OG example against Recipe version]
 
@@ -29,7 +29,7 @@ title: A sample set of do-nothing instructions
 
 # the user will be prompted to provide these values
 # and the values will persist through the run
-context: 
+context:
   - current_user_name
   - what_user_accomplished_today
 
@@ -41,7 +41,7 @@ steps: |-
 
   I heard you accomplished something great today: {what_user_accomplished_today}.
   Give yourself a pat on the back!
-  
+
 # https://yaml-multiline.info/#block-scalars
 ```
 

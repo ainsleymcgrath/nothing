@@ -12,15 +12,15 @@ Within the world of Nothing there are 2 main concepts:
 
 Blindingly simple to put together with standard yaml. (The funny looking guy `|-` is a called a [block scalar](https://yaml-multiline.info/#block-scalars).)
 
-We'll save this Task Spec in a file called `all-my-work.not` 
+We'll save this Task Spec in a file called `all-my-work.not`
 
 ```yaml
 ---
 title: Set yourself up to be the automation whiz
-steps: |- 
+steps: |-
   Download Nothing by running this:
   pip install not
-  
+
   Profit. use the `not` command:
   not do [your boring task]
 ```
@@ -33,13 +33,13 @@ A Task Spec can be saved as:
 
 ***Why "spec"? Isn't it called a do-nothing "script"?***
 
-That's the whole exercise! "Gradual automation." 
+That's the whole exercise! "Gradual automation."
 
 Scripts are hard. Blocks of plain text are easy. *And* a block of text can be recycled as a blueprint for a script  in the future. When you have time and an *actual* good reason to write that script.
 
-If you're anything like me, you are constantly yearning to write software that writes software for you. 
+If you're anything like me, you are constantly yearning to write software that writes software for you.
 
-But it's hard. 
+But it's hard.
 
 I've wasted hours of my life trying to turn ever-more-complicated aliases into shell functions, spent days on scripts to do tasks that [probably would not even have taken hours manually](https://github.com/ainsleymcgrath/dotfiles/commit/46add94cb7b5ad068fd7b23fc8305aba85c63762).
 
@@ -89,7 +89,7 @@ not drop preflight-checks
 
 ## There's more! A more dynamic example:
 
-Task specs have [non-negotiably minimal](link-to-rationale.md) support for Python [string formatting](https://docs.python.org/3.8/library/string.html#format-examples). 
+Task specs have [non-negotiably minimal](link-to-rationale.md) support for Python [string formatting](https://docs.python.org/3.8/library/string.html#format-examples).
 
 Any variable name in `context` can be templated into `steps` with `{curly_braces_around_it}`.
 
@@ -99,7 +99,7 @@ title: A sample set of do-nothing instructions
 
 # the user will be prompted to provide these values
 # at the start of the run
-context: 
+context:
   - current_user_name
   - what_user_accomplished_today
 
@@ -111,7 +111,7 @@ steps: |-
 
   I heard you accomplished something great today: {what_user_accomplished_today}.
   Give yourself a pat on the back!
-  
+
 # https://yaml-multiline.info/#block-scalars
 ```
 
@@ -132,7 +132,7 @@ not do sample
 title: Prepare for a presentation
 
 # the key is the variable, the value is how it's asked for
-context: 
+context:
   - name: What's your name?
   - presentation_topic: What's the topic of your presentation?
   - nervous: Are you feeling nervous about it? (y/n)
@@ -141,16 +141,16 @@ context:
 presets:
   - calm_down: Take a quick walk, {name}.
   - confidence_booster: Give yourself a pat on the back, {name}!
-  
+
 steps: |-
   { calm_down if nervous else confidence_booster }
-    
+
   Make bullets for major points if you haven't.
-  
+
   Find someone to read your notes to. They don't even have to really listen!
-  
+
   Go slow! The longest pause you can muster is still not long enough to be weird.
-  
+
 config:
   title_prefix: ""
   fine_controls: False

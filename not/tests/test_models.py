@@ -7,15 +7,8 @@ from typing import Dict
 import pytest
 from ruamel.yaml import YAML
 
-from ..models import (
-    ContextItem,
-    context_items_from_yaml_list,
-    Step,
-    steps_from_yaml_block,
-    TaskSpec,
-    TaskSpecCreate,
-    TaskSpecCreateExpert,
-)
+from ..models import context_items_from_yaml_list, steps_from_yaml_block
+
 
 yaml = YAML()
 

@@ -20,7 +20,7 @@ class TestClean:
         ]
 
         yield TaskSpecCreate(
-            filename="do-the-thing.yml", title="Do The Thing", steps=steps_for_task,
+            filename="do-the-thing.yml", title="Do The Thing", steps=steps_for_task
         )
 
     @pytest.fixture

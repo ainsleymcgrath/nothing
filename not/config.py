@@ -31,12 +31,10 @@ class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
 
     # content defaults
     default_title = glot["default_title"]
-    default_context_list = [{
-        glot["default_context_name_name"]: glot["default_context_name_prompt"]
-    }]
-    default_presets = [{
-        glot["default_presets_name"]: glot["default_presets_response"]
-    }]
+    default_context_list = [
+        {glot["default_context_name_name"]: glot["default_context_name_prompt"]}
+    ]
+    default_presets = [{glot["default_presets_name"]: glot["default_presets_response"]}]
     default_steps = glot["default_steps"]
     default_steps_expert = glot["default_steps_expert"]
 

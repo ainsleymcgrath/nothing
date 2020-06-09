@@ -8,15 +8,9 @@ from typing import Any, Dict, Iterator, Tuple
 import typer
 
 from .config import GlobalConfig
-from .constants import (
-    DirectoryChoicesForListCommand,
-    DOT_NOTHING_DIRECTORY_NAME,
-)
+from .constants import DirectoryChoicesForListCommand, DOT_NOTHING_DIRECTORY_NAME
 from .localization import polyglot as glot
-from .filesystem import (
-    glob_each_extension,
-    task_spec_names_by_parent_dir_name,
-)
+from .filesystem import glob_each_extension, task_spec_names_by_parent_dir_name
 from .models import Step, TaskSpec, TaskSpecInspection
 
 
@@ -53,9 +47,7 @@ def interactive_walkthrough(task_spec: TaskSpec) -> None:
 
     typer.echo()
     for step in task_spec.steps:
-        run_step(
-            step, context_dict,
-        )
+        run_step(step, context_dict)
 
     typer.echo(config.completion_message)
 
@@ -92,7 +84,10 @@ def prompt_for_new_args(
     prompts = (
         (glot["new_title_prompt"], {}),
         (glot["new_extension_prompt"], {"default": default_extension}),
-        (glot["new_destination_prompt"], {"default": default_destination, "type": Path}),
+        (
+            glot["new_destination_prompt"],
+            {"default": default_destination, "type": Path},
+        ),
         (glot["new_extra_config_prompt"], {"default": expert, "type": bool}),
         (glot["new_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
     )
@@ -111,9 +106,12 @@ def prompt_for_copy_args(
     prompts = (
         (glot["edit_name_prompt"], {}),
         (glot["edit_title_prompt"], {"default": default_title, "type": str}),
-        (glot["edit_destination_prompt"], {"default": default_destination, "type": Path}),
+        (
+            glot["edit_destination_prompt"],
+            {"default": default_destination, "type": Path},
+        ),
         (glot["edit_extension_prompt"], {"default": default_extension, "type": str}),
-        (glot["edit_open_editor_prompt"], {"default": edit_after_write, "type": bool},),
+        (glot["edit_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
     )
 
     return multiprompt(*prompts)
@@ -202,7 +200,9 @@ def confirm_overwrite(task_spec_name) -> bool:
 def success(message) -> None:
     """Echo the message with a stylish interjection above it"""
 
-    stylish_interjection = typer.style(glot["stylish_interjection"], fg=typer.colors.GREEN)
+    stylish_interjection = typer.style(
+        glot["stylish_interjection"], fg=typer.colors.GREEN
+    )
     typer.echo(stylish_interjection)
     typer.echo(message)
 

@@ -60,10 +60,14 @@ class _Polyglot(Dict[str, str]):
         """Test if the locfile is complete."""
 
         missing_entries = [
-            entry for entry in STRINGS_SUPPORTED if entry not in self  # pylint: disable=E1135
+            entry
+            for entry in STRINGS_SUPPORTED
+            if entry not in self  # pylint: disable=E1135
         ]
         superfluous_entries = [
-            entry for entry in self if entry not in STRINGS_SUPPORTED  # pylint: disable=E1133
+            entry
+            for entry in self
+            if entry not in STRINGS_SUPPORTED  # pylint: disable=E1133
         ]
 
         if missing_entries:
@@ -89,9 +93,12 @@ def get_system_locale() -> str:
 
     if system() == "Windows":
         try:
-            # The windll property only exists in windows, so this raises a linter concern.
+            # The windll property only exists in windows,
+            # so this raises a linter concern.
             return normalize(
-                windows_locale[ctypes.windll.kernel32].GetUserDefaultUILanguage()  # type: ignore
+                windows_locale[
+                    ctypes.windll.kernel32
+                ].GetUserDefaultUILanguage()  # type: ignore
             )
         except (KeyError, AttributeError, TypeError):
             pass

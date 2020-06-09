@@ -6,7 +6,9 @@ from ..reader import deserialize_task_spec_file
 
 
 def test_serialize_minimal(super_minimal_task_spec_file_content):
-    task_spec: TaskSpec = deserialize_task_spec_file(super_minimal_task_spec_file_content)
+    task_spec: TaskSpec = deserialize_task_spec_file(
+        super_minimal_task_spec_file_content
+    )
     keys_with_values_in_spec = [
         key for key, value in task_spec.dict().items() if value is not None
     ]
