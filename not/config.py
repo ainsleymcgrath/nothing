@@ -43,4 +43,4 @@ class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
     # commands
     interactive_new: bool = True
     edit_after_write: bool = True
-    default_destination_dir: Path = Path.cwd()
+    default_destination_dir: Path = Path.cwd() / ".nothing"

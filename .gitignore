@@ -1,5 +1,6 @@
 # Related to this project
 *.not
+.nothing
 
 # vim
 tags
