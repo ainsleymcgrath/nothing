@@ -9,6 +9,7 @@ from .constants import (
     TASK_SPEC_EXT_PATTERN,
     VALID_TASK_SPEC_EXTENSION_NAMES,
 )
+from .localization import polyglot as glot
 
 
 def glob_each_extension(
@@ -58,7 +59,7 @@ def friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
     """Take a long path and return it with a friendly . or ~ where applicable"""
 
     # TODO ditch the location kwarg, do check if path is child of cwd?
-    prefixes_by_location = {"home": "~", "cwd": "."}
+    prefixes_by_location = {glot["home"]: "~", glot["cwd"]: "."}
     verbose_prefix = str(getattr(Path, location)())
 
     return str(path).replace(verbose_prefix, prefixes_by_location[location])

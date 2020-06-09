@@ -12,6 +12,7 @@ from .constants import (
     DirectoryChoicesForListCommand,
     DOT_NOTHING_DIRECTORY_NAME,
 )
+from .localization import polyglot as glot
 from .filesystem import (
     glob_each_extension,
     task_spec_names_by_parent_dir_name,
@@ -68,7 +69,7 @@ def run_step(step: Step, context: Dict):
     except KeyError:
         typer.echo(step.prompt + "\n")
 
-    input("Press enter to continue...")
+    input(glot["nag"])
     typer.echo()
 
 
@@ -89,11 +90,11 @@ def prompt_for_new_args(
     """Prompt for all arguments needed to perform `not do`"""
 
     prompts = (
-        ("The title of your Task Spec", {}),
-        ("Extension", {"default": default_extension}),
-        ("Destination directory", {"default": default_destination, "type": Path}),
-        ("Extra config? (like --expert)", {"default": expert, "type": bool}),
-        ("Open $EDITOR now?", {"default": edit_after_write, "type": bool}),
+        (glot["new_title_prompt"], {}),
+        (glot["new_extension_prompt"], {"default": default_extension}),
+        (glot["new_destination_prompt"], {"default": default_destination, "type": Path}),
+        (glot["new_extra_config_prompt"], {"default": expert, "type": bool}),
+        (glot["new_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
     )
 
     return multiprompt(*prompts)
@@ -108,11 +109,11 @@ def prompt_for_copy_args(
     """Prompt for all arguments needed to perform `not copy`"""
 
     prompts = (
-        ("New Task Spec name", {}),
-        ("New Task Spec title", {"default": default_title, "type": str}),
-        ("Destination dir for copy", {"default": default_destination, "type": Path}),
-        ("Extension for new Task Spec", {"default": default_extension, "type": str}),
-        ("Edit after write?", {"default": edit_after_write, "type": bool},),
+        (glot["edit_name_prompt"], {}),
+        (glot["edit_title_prompt"], {"default": default_title, "type": str}),
+        (glot["edit_destination_prompt"], {"default": default_destination, "type": Path}),
+        (glot["edit_extension_prompt"], {"default": default_extension, "type": str}),
+        (glot["edit_open_editor_prompt"], {"default": edit_after_write, "type": bool},),
     )
 
     return multiprompt(*prompts)
@@ -169,7 +170,7 @@ def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
 
     for base_dir, subdir_dict in task_spec_names_by_directory.items():
         header = typer.style(
-            f"[ {'GLOBAL' if base_dir == 'home' else 'LOCAL'} ]\n",
+            f"[ {glot['GLOBAL'] if base_dir == 'home' else glot['LOCAL']} ]\n",
             typer.colors.BRIGHT_BLUE,
         )
         typer.echo(header)
@@ -191,8 +192,7 @@ def confirm_overwrite(task_spec_name) -> bool:
     name as an existing one"""
 
     existence_warning = typer.style(
-        f"🤔 Task Spec '{task_spec_name}' appears to exist already\n"
-        "Would you like to overwrite it?",
+        glot.localized("overwrite_warn", {"name": task_spec_name}),
         fg=typer.colors.YELLOW,
     )
 
@@ -202,7 +202,7 @@ def confirm_overwrite(task_spec_name) -> bool:
 def success(message) -> None:
     """Echo the message with a stylish interjection above it"""
 
-    stylish_interjection = typer.style("Success! 🙌", fg=typer.colors.GREEN)
+    stylish_interjection = typer.style(glot["stylish_interjection"], fg=typer.colors.GREEN)
     typer.echo(stylish_interjection)
     typer.echo(message)
 
@@ -220,6 +220,6 @@ def warn_missing_file(name):
     """A generic warning when a Task Spec with the specified name does not exist"""
 
     message = typer.style(
-        f"😕 It doesn't look like there's a spec for '{name}'.", fg=typer.colors.YELLOW
+        glot.localized("missing_file_warn", {"name": name}), fg=typer.colors.YELLOW
     )
     typer.echo(message)

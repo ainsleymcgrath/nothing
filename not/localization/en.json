@@ -1,0 +1,41 @@
+{
+  "title_prefix": "Beginning task",
+  "step_prefix": "Step",
+  "context_prompt": "Please provide a value for {}",
+  "completion_message": "All done!",
+
+  "default_title": "Do Nothing",
+  "default_context_name_name": "name",
+  "default_context_name_prompt": "What's your name?",
+  "default_presets_name": "apology",
+  "default_presets_response": "I know hat was cheesy, {name}. But it's true!",
+  "default_steps": "Take 3 deep breaths, {name}.\n\nFind a comfortable position in your seat.\n\nBegin to breathe lightly and slowly, as if you're going to sleep.\n\nClose your eyes and count 10 of your gentle breaths.",
+  "default_steps_expert": "Take 3 deep breaths, {name}.\n\nBe still for a moment\n\nRecall that you are irreplaceable.\n\n{apology}",
+
+  "cwd": "cwd",
+  "home": "home",
+  "both": "both",
+
+  "help": "Nothing helps coder be more smarter & less dumber.",
+  "file_written": "{filename} written to {destination}",
+  "filename_prompt": "What is the new name for the file? 📝",
+  "file_edited": "Edited {name}",
+  "copied": "Copy of {name} written to {destination}",
+
+  "nag": "Press enter to continue...",
+  "new_title_prompt": "The title of your Task Spec",
+  "new_extension_prompt": "Extension",
+  "new_destination_prompt": "Destination directory",
+  "new_extra_config_prompt": "Extra config? (like --expert)",
+  "new_open_editor_prompt": "Open $EDITOR now?",
+  "edit_name_prompt": "New Task Spec name",
+  "edit_title_prompt": "New Task Spec title",
+  "edit_destination_prompt": "Destination dir for copy",
+  "edit_extension_prompt": "Extension for new Task Spec",
+  "edit_open_editor_prompt": "Edit after write?",
+  "GLOBAL": "GLOBAL",
+  "LOCAL": "LOCAL",
+  "overwrite_warn": "🤔 Task Spec '{name}' appears to exist already\nWould you like to overwrite it?",
+  "stylish_interjection": "Success! 🙌",
+  "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'."
+}
