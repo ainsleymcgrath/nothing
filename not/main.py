@@ -8,9 +8,9 @@ import typer
 from . import writer
 from .config import GlobalConfig
 from .constants import DirectoryChoicesForListCommand
+from .filesystem import deserialize_task_spec_file
 from .localization import polyglot as glot
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
-from .reader import deserialize_task_spec_file
 from .theatrics import (
     ask,
     confirm_overwrite,

@@ -1,8 +1,10 @@
 """filesystem utilities for not"""
 from itertools import chain
 from pathlib import Path
-from typing_extensions import Literal
 from typing import Dict, Iterable, Iterator, List, Union
+from typing_extensions import Literal
+
+from ruamel.yaml import YAML
 
 from .constants import (
     DOT_NOTHING_DIRECTORY_NAME,
@@ -10,6 +12,15 @@ from .constants import (
     VALID_TASK_SPEC_EXTENSION_NAMES,
 )
 from .localization import polyglot as glot
+from .models import (
+    ContextItem,
+    context_items_from_yaml_list,
+    Step,
+    steps_from_yaml_block,
+    TaskSpec,
+)
+
+yaml = YAML()
 
 
 def glob_each_extension(
@@ -86,3 +97,18 @@ def task_spec_names_by_parent_dir_name(
         accum_dict[key] = [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
 
     return accum_dict
+
+
+def deserialize_task_spec_file(task_spec_content: str) -> TaskSpec:
+    """Take the content of a Task Spec file, try to find the corresponding file,
+    return it as a TaskSpec object"""
+
+    yml: Dict = yaml.load(task_spec_content)
+
+    raw_steps = yml.pop("steps")
+    raw_context = yml.pop("context", None)
+
+    parsed_steps: List[Step] = steps_from_yaml_block(raw_steps)
+    parsed_context: List[ContextItem] = context_items_from_yaml_list(raw_context)
+
+    return TaskSpec(steps=parsed_steps, context=parsed_context, **yml)

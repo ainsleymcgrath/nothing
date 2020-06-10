@@ -9,6 +9,7 @@ import pytest
 
 from ..constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
 from ..filesystem import (
+    deserialize_task_spec_file,
     friendly_prefix_for_path,
     glob_each_extension,
     task_spec_location,
@@ -210,3 +211,30 @@ class TestFriendlyPrefixForPath:
         assert (
             friendly_prefix_for_path(path_in_patched_filesystem, location) == expected
         )
+
+
+class TestSerializeTaskSpec:
+    """Test suite for filesystem.deserialize_task_spec_file"""
+
+    def test_serialize_minimal(self, super_minimal_task_spec_file_content):
+        task_spec = deserialize_task_spec_file(super_minimal_task_spec_file_content)
+        keys_with_values_in_spec = [
+            key for key, value in task_spec.dict().items() if value is not None
+        ]
+
+        assert len(task_spec.steps) == 2, "Every newline-delimited step is counted"
+        assert sorted(keys_with_values_in_spec) == ["steps", "title"]
+
+    def test_serialize_with_simple_context(self, task_spec_with_context_as_simple_list):
+        task_spec = deserialize_task_spec_file(task_spec_with_context_as_simple_list)
+
+        assert len(task_spec.context) == 2
+
+    def test_serialize_with_complex_context(
+        self, task_spec_with_context_as_list_of_mappings
+    ):
+        task_spec = deserialize_task_spec_file(
+            task_spec_with_context_as_list_of_mappings
+        )
+
+        assert len(task_spec.context) == 3
