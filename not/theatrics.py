@@ -201,6 +201,16 @@ def confirm_overwrite(task_spec_name) -> bool:
     return typer.confirm(existence_warning, abort=True)
 
 
+def confirm_drop(task_spec_name) -> bool:
+    """Prompt y/n when user is about to delete a Task Spec file"""
+
+    drop_is_destructive_warning = typer.style(
+        glot.localized("drop_warn", {"name": task_spec_name}), fg=typer.colors.YELLOW
+    )
+
+    return typer.confirm(drop_is_destructive_warning, abort=True)
+
+
 def success(message) -> None:
     """Echo the message with a stylish interjection above it"""
 
