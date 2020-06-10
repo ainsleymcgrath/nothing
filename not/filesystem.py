@@ -1,6 +1,8 @@
 """filesystem utilities for not"""
 from itertools import chain
+from os.path import getatime, getmtime
 from pathlib import Path
+from time import ctime
 from typing import Dict, Iterable, Iterator, List, Union
 from typing_extensions import Literal
 
@@ -79,7 +81,7 @@ def friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
 def task_spec_names_by_parent_dir_name(
     paths: Iterable[Path], base_dir: Literal["home", "cwd"] = None
 ) -> Dict[str, List[str]]:
-    """Helper for _collect_fancy_list_input.
+    """Helper for theatrics._collect_fancy_list_input.
     Returns a dict with friendly path name keys and lists of friendly task spec
     names as values."""
 
@@ -112,3 +114,34 @@ def deserialize_task_spec_file(task_spec_content: str) -> TaskSpec:
     parsed_context: List[ContextItem] = context_items_from_yaml_list(raw_context)
 
     return TaskSpec(steps=parsed_steps, context=parsed_context, **yml)
+
+
+def task_spec_file_metadata(file_location: Path) -> Dict:
+    """ A dict of:
+        full_path
+        last_modified
+        last_accessed"""
+
+    last_modified = ctime(getmtime(file_location))
+    last_accessed = ctime(getatime(file_location))
+
+    return {
+        "last_modified": last_modified,
+        "last_accessed": last_accessed,
+        "full_path": file_location.resolve(),
+    }
+
+
+def task_spec_object_metadata(task_spec: TaskSpec) -> Dict:
+    """A dict of:
+        title
+        step_count
+        context_vars"""
+
+    return {
+        "title": task_spec.title,
+        "step_count": len(task_spec.steps),
+        "context_vars": [c.var_name for c in task_spec.context]
+        if task_spec.context is not None
+        else glot["no_context_to_display_placeholder"],
+    }

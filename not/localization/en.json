@@ -37,5 +37,12 @@
   "LOCAL": "LOCAL",
   "overwrite_warn": "🤔 Task Spec '{name}' appears to exist already\nWould you like to overwrite it?",
   "stylish_interjection": "Success! 🙌",
-  "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'."
+  "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'.",
+
+  "context_vars_descriptor": "Context vars",
+  "step_count_descriptor": "# Steps",
+  "full_path_descriptor": "Full path",
+  "last_modified_descriptor": "Last modified",
+  "last_accessed_descriptor": "Last accessed",
+  "no_context_to_display_placeholder": "[ context not used ]"
 }
