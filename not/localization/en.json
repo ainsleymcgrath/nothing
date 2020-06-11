@@ -42,6 +42,8 @@
   "stylish_interjection": "Success! 🙌",
   "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'.",
 
+  "title_descriptor": "Title",
+  "description_descriptor": "Description",
   "context_vars_descriptor": "Context vars",
   "step_count_descriptor": "# Steps",
   "full_path_descriptor": "Full path",

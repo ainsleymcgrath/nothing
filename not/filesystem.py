@@ -136,6 +136,7 @@ def task_spec_object_metadata(task_spec: TaskSpec) -> Dict:
 
     return {
         "title": task_spec.title,
+        "description": task_spec.description,
         "step_count": len(task_spec.steps),
         "context_vars": [c.var_name for c in task_spec.context]
         if task_spec.context is not None

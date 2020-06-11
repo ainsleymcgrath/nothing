@@ -37,8 +37,10 @@ def marquis(title, description):
     border = "~" * border_length
 
     typer.echo(border)
+    typer.echo()
     typer.echo(f" {title} ")
     typer.echo(f"    '{description}' ")
+    typer.echo()
     typer.echo(border)
     typer.echo()
 
@@ -271,6 +273,8 @@ def show_dossier(task_spec_name):
     colored_keys = (
         typer.style(field, fg=typer.colors.BRIGHT_BLUE)
         for field in justified_with_colons(
+            glot["title_descriptor"],
+            glot["description_descriptor"],
             glot["full_path_descriptor"],
             glot["step_count_descriptor"],
             glot["context_vars_descriptor"],
@@ -280,16 +284,14 @@ def show_dossier(task_spec_name):
     )
 
     meta_values = (
+        title,
+        obj_meta["description"],
         file_meta["full_path"],
         obj_meta["step_count"],
         obj_meta["context_vars"],
         file_meta["last_accessed"],
         file_meta["last_modified"],
     )
-
-    typer.echo()
-    typer.echo(f"    {title}")
-    typer.echo()
 
     for field, value in zip(colored_keys, meta_values):
         typer.echo(f"{field} {value}")
