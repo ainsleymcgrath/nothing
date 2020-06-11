@@ -239,10 +239,10 @@ def justified_with_colons(*strings) -> List[str]:
     Will use the longest word's len + 4 for the width."""
     width = len(max(strings, key=len)) + 4
 
-    return [text.ljust(width, " ") + ": " for text in strings]
+    return [string.ljust(width, " ") + ": " for string in strings]
 
 
-def dossier(task_spec_name):
+def show_dossier(task_spec_name):
     """A pretty-printed overview of some Task Spec metadata"""
 
     file_location: Path = task_spec_location(task_spec_name)
@@ -278,7 +278,7 @@ def dossier(task_spec_name):
     )
 
     typer.echo()
-    typer.echo(title)
+    typer.echo(f"    {title}")
     typer.echo()
 
     for field, value in zip(colored_keys, meta_values):

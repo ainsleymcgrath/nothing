@@ -14,7 +14,7 @@ from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .theatrics import (
     ask,
     confirm_overwrite,
-    dossier,
+    show_dossier,
     interactive_walkthrough,
     warn_missing_file,
     prompt_for_copy_args,
@@ -193,4 +193,4 @@ def drop(existing_task_spec_name: str, no_confirm: bool = False):
 def describe(task_spec_name: str):
     """Display a little overview of the Task Spec"""
 
-    dossier(task_spec_name)
+    show_dossier(task_spec_name)
