@@ -78,7 +78,7 @@ class TaskSpec(BaseModel):
 
     filename: str = None
     title: str
-    description: str = ""  # XXX required?
+    description: str
     steps: List[Step]
     context: List[ContextItem] = None
     presets: List[Dict] = None
