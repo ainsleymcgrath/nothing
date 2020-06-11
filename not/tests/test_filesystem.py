@@ -18,7 +18,7 @@ from ..filesystem import (
 from ..localization import polyglot as glot
 
 
-SAMPLE_TASK_SPEC_NAMES = ["code_review_checklist", "release_hounds", "dazzle_friends"]
+SAMPLE_TASK_SPEC_NAMES = {"code_review_checklist", "release_hounds"}
 
 
 @pytest.fixture
@@ -87,38 +87,6 @@ class TestTaskSpecLocation:
 
         assert location is None
 
-    @pytest.fixture
-    def task_spec_with_dot_not_extension(self, tmp_path):
-        task_spec_name = "speed-reading"
-        filename = f"{task_spec_name}.not"
-        task_spec = Path(tmp_path) / filename
-        task_spec.touch(exist_ok=True)
-
-        return task_spec_name
-
-    def test_task_spec_location_finds_local_dot_not_file(
-        self, task_spec_with_dot_not_extension, patched_cwd
-    ):
-        spec_name = task_spec_with_dot_not_extension
-        location = task_spec_location(spec_name)
-
-        assert spec_name in location.name
-
-    @pytest.fixture
-    def dot_not_file_in_parent_dir(self, tmp_path):
-        filename = "cooking-soup.not"
-        task_spec = Path(tmp_path) / filename
-        task_spec.touch(exist_ok=True)
-
-        working_directory = Path(tmp_path) / "child_dir"
-        working_directory.mkdir(exist_ok=True)
-
-        return working_directory
-
-    def test_does_not_find_dot_not_file_in_parent_dir(self, dot_not_file_in_parent_dir):
-        location = task_spec_location("cooking-soup")
-        assert location is None
-
 
 class TestGlobEachExtension:
     """Test suite for not.filesystem.glob_each_extension"""
@@ -127,7 +95,6 @@ class TestGlobEachExtension:
     PYTHON_FILE = "foo.py"
     SUBDIR = "nested_dir"
     CLJ_FILE_IN_SUBDIR = "fizz.clj"
-    DOT_NOT_FILE_IN_SUBDIR = "foobar.not"
 
     @pytest.fixture
     def dir_with_task_specs_and_other_files_and_subdir(self, tmp_path):
@@ -144,13 +111,11 @@ class TestGlobEachExtension:
         nested_directory.mkdir(exist_ok=True)
 
         file_under_nested_directory = nested_directory / self.CLJ_FILE_IN_SUBDIR
-        task_spec_in_subdir = nested_directory / self.DOT_NOT_FILE_IN_SUBDIR
 
         for file in [
             python_file,
             html_file,
             file_under_nested_directory,
-            task_spec_in_subdir,
             *task_spec_files,
         ]:
             file.touch(exist_ok=True)
@@ -166,7 +131,7 @@ class TestGlobEachExtension:
             path.name.split(".")[-2] for path in task_spec_files_in_dir
         )
 
-        assert set(names_of_returned_files) == set(SAMPLE_TASK_SPEC_NAMES)
+        assert set(names_of_returned_files) == SAMPLE_TASK_SPEC_NAMES
         assert self.CLJ_FILE_IN_SUBDIR not in task_spec_files_in_dir
 
     def test_with_recurse(self, dir_with_task_specs_and_other_files_and_subdir):
@@ -177,12 +142,8 @@ class TestGlobEachExtension:
         names_of_returned_files = set(
             path.name.split(".")[-2] for path in task_spec_files_in_dir
         )
-        expected_names: set = {
-            self.DOT_NOT_FILE_IN_SUBDIR.split(".")[-2],
-            *SAMPLE_TASK_SPEC_NAMES,
-        }
 
-        assert names_of_returned_files == expected_names
+        assert names_of_returned_files == SAMPLE_TASK_SPEC_NAMES
 
 
 class TestFriendlyPrefixForPath:
