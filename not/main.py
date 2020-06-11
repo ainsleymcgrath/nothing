@@ -13,6 +13,7 @@ from .localization import polyglot as glot
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
 from .theatrics import (
     ask,
+    confirm_drop,
     confirm_overwrite,
     show_dossier,
     interactive_walkthrough,
@@ -185,8 +186,20 @@ def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.
 
 
 @app.command()
-def drop(existing_task_spec_name: str, no_confirm: bool = False):
+def drop(task_spec_name: str, no_confirm: bool = False):
     """Permanently delete a task spec file. Confirm before doing unless specified"""
+
+    file: Path = task_spec_location(task_spec_name)
+
+    if file is None:
+        warn_missing_file(task_spec_name)
+        raise typer.Abort()
+
+    if no_confirm or confirm_drop(task_spec_name):
+        file.unlink()
+        success(
+            glot.localized("dropped", {"name": task_spec_name, "location": file.parent})
+        )
 
 
 @app.command()

@@ -21,6 +21,7 @@
   "filename_prompt": "What is the new name for the file? 📝",
   "file_edited": "Edited {name}",
   "copied": "Copy of {name} written to {destination}",
+  "dropped": "'{name}' permanetly deleted from:\n    {location} ☠️",
 
   "nag": "Press enter to continue...",
   "new_title_prompt": "The title of your Task Spec",
@@ -36,6 +37,7 @@
   "GLOBAL": "GLOBAL",
   "LOCAL": "LOCAL",
   "overwrite_warn": "🤔 Task Spec '{name}' appears to exist already\nWould you like to overwrite it?",
+  "drop_warn": "😬 Are you sure you want to permanently delete '{name}'?",
   "stylish_interjection": "Success! 🙌",
   "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'.",
 
