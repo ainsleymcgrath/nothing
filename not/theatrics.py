@@ -7,7 +7,11 @@ from typing import Any, Dict, Iterator, List, Tuple
 import typer
 
 from .config import GlobalConfig
-from .constants import DirectoryChoicesForListCommand, DOT_NOTHING_DIRECTORY_NAME
+from .constants import (
+    CWD_DOT_NOTHING_DIR,
+    HOME_DOT_NOTHING_DIR,
+    DirectoryChoicesForListCommand,
+)
 from .localization import polyglot as glot
 from .filesystem import (
     glob_each_extension,
@@ -145,7 +149,7 @@ def _collect_fancy_list_input(
 
     if show_home or show_both:
         task_specs_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-            "*", (Path.home() / DOT_NOTHING_DIRECTORY_NAME), recurse=True
+            "*", HOME_DOT_NOTHING_DIR, recurse=True
         )
 
         names_by_dir["home"] = task_spec_names_by_parent_dir_name(
@@ -154,7 +158,7 @@ def _collect_fancy_list_input(
 
     if show_cwd or show_both:
         task_specs_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-            "*", Path.cwd() / DOT_NOTHING_DIRECTORY_NAME, recurse=True
+            "*", CWD_DOT_NOTHING_DIR, recurse=True
         )
 
         names_by_dir["cwd"] = task_spec_names_by_parent_dir_name(
