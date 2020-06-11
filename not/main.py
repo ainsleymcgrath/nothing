@@ -72,6 +72,7 @@ def new(
 
         (
             task_spec_name,
+            description,
             extension,
             destination_dir,
             expert,
@@ -81,9 +82,9 @@ def new(
 
     task_spec_filename = f"{task_spec_name}.{extension}"
     task_spec: TaskSpec = (
-        TaskSpecCreate(filename=task_spec_filename)
+        TaskSpecCreate(filename=task_spec_filename, description=description)
         if not expert
-        else TaskSpecCreateExpert(filename=task_spec_filename)
+        else TaskSpecCreateExpert(filename=task_spec_filename, description=description)
     )
 
     try:

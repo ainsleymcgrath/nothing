@@ -71,7 +71,6 @@ def context_items_from_yaml_list(
     ]
 
 
-# TODO add description field
 class TaskSpec(BaseModel):
     """A Task Spec file as a Python object.
     Can be initialized without filename since it's mostly
@@ -79,6 +78,7 @@ class TaskSpec(BaseModel):
 
     filename: str = None
     title: str
+    description: str = None
     steps: List[Step]
     context: List[ContextItem] = None
     presets: List[Dict] = None

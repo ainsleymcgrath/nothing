@@ -25,6 +25,7 @@
 
   "nag": "Press enter to continue...",
   "new_title_prompt": "The title of your Task Spec",
+  "new_description_prompt": "A short description",
   "new_extension_prompt": "Extension",
   "new_destination_prompt": "Destination directory",
   "new_extra_config_prompt": "Extra config? (like --expert)",

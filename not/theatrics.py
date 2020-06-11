@@ -23,17 +23,21 @@ from .models import Step, TaskSpec
 config = GlobalConfig()
 
 
-def dramatic_title(title):
-    """A title that
+def marquis(title, description):
+    """A display of the title + description that
 
-    ###############
-    Looks Like This
-    ###############
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     Looks Like This
+
+        'With a description in quotes'
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    border = "=" * len(title)
+    border = "~" * (len(description) + 8)
+
     typer.echo(border)
-    typer.echo(title)
+    typer.echo(f" {title} ")
+    typer.echo(f"    '{description}' ")
     typer.echo(border)
     typer.echo()
 
@@ -41,8 +45,7 @@ def dramatic_title(title):
 def interactive_walkthrough(task_spec: TaskSpec) -> None:
     """Interactively walk through a task spec"""
 
-    # XXX use spec-level config
-    dramatic_title(f"{config.title_prefix}: {task_spec.title}")
+    marquis(task_spec.title, task_spec.description)
 
     context_dict = {}
 
@@ -89,6 +92,7 @@ def prompt_for_new_args(
 
     prompts = (
         (glot["new_title_prompt"], {}),
+        (glot["new_description_prompt"], {}),
         (glot["new_extension_prompt"], {"default": default_extension}),
         (
             glot["new_destination_prompt"],
