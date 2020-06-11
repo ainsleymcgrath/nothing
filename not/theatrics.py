@@ -2,7 +2,7 @@
 from itertools import chain
 from pathlib import Path
 from textwrap import indent
-from typing import Any, Dict, Iterator, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 
 import typer
@@ -10,8 +10,15 @@ import typer
 from .config import GlobalConfig
 from .constants import DirectoryChoicesForListCommand, DOT_NOTHING_DIRECTORY_NAME
 from .localization import polyglot as glot
-from .filesystem import glob_each_extension, task_spec_names_by_parent_dir_name
-from .models import Step, TaskSpec, TaskSpecInspection
+from .filesystem import (
+    glob_each_extension,
+    deserialize_task_spec_file,
+    task_spec_file_metadata,
+    task_spec_location,
+    task_spec_names_by_parent_dir_name,
+    task_spec_object_metadata,
+)
+from .models import Step, TaskSpec
 
 
 config = GlobalConfig()
@@ -117,10 +124,7 @@ def prompt_for_copy_args(
     return multiprompt(*prompts)
 
 
-def show_task_spec_overview(inspection: TaskSpecInspection):
-    pass
-
-
+# TODO this should be in filesystem
 def _collect_fancy_list_input(
     showing_from_dir: DirectoryChoicesForListCommand,
 ) -> Dict[str, Dict[str, str]]:
@@ -216,6 +220,7 @@ def ask(question, **prompt_kwargs) -> Any:
     return answer
 
 
+# TODO: raise typer.Abort() when called
 def warn_missing_file(name):
     """A generic warning when a Task Spec with the specified name does not exist"""
 
@@ -223,3 +228,58 @@ def warn_missing_file(name):
         glot.localized("missing_file_warn", {"name": name}), fg=typer.colors.YELLOW
     )
     typer.echo(message)
+
+
+def justified_with_colons(*strings) -> List[str]:
+    """For use when making lists like so:
+
+    Item       :   yep
+    Another    :   sure
+
+    Will use the longest word's len + 4 for the width."""
+    width = len(max(strings, key=len)) + 4
+
+    return [string.ljust(width, " ") + ": " for string in strings]
+
+
+def show_dossier(task_spec_name):
+    """A pretty-printed overview of some Task Spec metadata"""
+
+    file_location: Path = task_spec_location(task_spec_name)
+
+    if file_location is None:
+        warn_missing_file(task_spec_name)
+        return
+
+    task_spec: TaskSpec = deserialize_task_spec_file(file_location)
+
+    file_meta = task_spec_file_metadata(file_location)
+    obj_meta = task_spec_object_metadata(task_spec)
+
+    title = typer.style(obj_meta["title"], bold=True)
+
+    colored_keys = (
+        typer.style(field, fg=typer.colors.BRIGHT_BLUE)
+        for field in justified_with_colons(
+            glot["full_path_descriptor"],
+            glot["step_count_descriptor"],
+            glot["context_vars_descriptor"],
+            glot["last_accessed_descriptor"],
+            glot["last_modified_descriptor"],
+        )
+    )
+
+    meta_values = (
+        file_meta["full_path"],
+        obj_meta["step_count"],
+        obj_meta["context_vars"],
+        file_meta["last_accessed"],
+        file_meta["last_modified"],
+    )
+
+    typer.echo()
+    typer.echo(f"    {title}")
+    typer.echo()
+
+    for field, value in zip(colored_keys, meta_values):
+        typer.echo(f"{field} {value}")

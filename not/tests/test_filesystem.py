@@ -1,7 +1,7 @@
 # pylint: disable=missing-function-docstring, redefined-outer-name, unused-argument
 # pylint: disable=no-self-use
 
-"""Tests for not.utils"""
+"""Tests for not.filesystem"""
 from pathlib import Path
 from typing import Iterator
 
@@ -13,7 +13,10 @@ from ..filesystem import (
     friendly_prefix_for_path,
     glob_each_extension,
     task_spec_location,
+    task_spec_object_metadata,
 )
+from ..localization import polyglot as glot
+
 
 SAMPLE_TASK_SPEC_NAMES = ["code_review_checklist", "release_hounds", "dazzle_friends"]
 
@@ -238,3 +241,52 @@ class TestSerializeTaskSpec:
         )
 
         assert len(task_spec.context) == 3
+
+
+class TestTaskSpecObjectMetadata:
+    """Test suite for filesytem.task_spec_object_metadata"""
+
+    def test_without_context(self, super_minimal_task_spec_file_content):
+        task_spec = deserialize_task_spec_file(super_minimal_task_spec_file_content)
+        meta = task_spec_object_metadata(task_spec)
+
+        expected_context_vars = glot["no_context_to_display_placeholder"]
+
+        assert (
+            meta["context_vars"] == expected_context_vars
+        ), "Unused context message shown when Task Spec has no context"
+
+    def test_with_simple_context(self, task_spec_with_context_as_simple_list):
+        task_spec = deserialize_task_spec_file(task_spec_with_context_as_simple_list)
+        meta = task_spec_object_metadata(task_spec)
+
+        expected_context_vars = ["current_user_name", "what_user_accomplished_today"]
+
+        assert (
+            meta["context_vars"] == expected_context_vars
+        ), "Var names shown for Task Spec with simple context"
+
+    def test_with_compelx_context(self, task_spec_with_context_as_list_of_mappings):
+        task_spec = deserialize_task_spec_file(
+            task_spec_with_context_as_list_of_mappings
+        )
+        meta = task_spec_object_metadata(task_spec)
+
+        expected_context_vars = ["name", "fave_snack", "destination"]
+
+        assert (
+            meta["context_vars"] == expected_context_vars
+        ), "Var names shown for Task Spec with complex context"
+
+    def test_step_count(
+        self,
+        super_minimal_task_spec_file_content,
+        task_spec_with_context_as_list_of_mappings,
+    ):
+        task_spec_1 = deserialize_task_spec_file(super_minimal_task_spec_file_content)
+        task_spec_2 = deserialize_task_spec_file(
+            task_spec_with_context_as_list_of_mappings
+        )
+
+        assert task_spec_object_metadata(task_spec_1)["step_count"] == 2
+        assert task_spec_object_metadata(task_spec_2)["step_count"] == 4

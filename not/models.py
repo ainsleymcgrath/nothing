@@ -107,8 +107,3 @@ class TaskSpecCreateExpert(TaskSpec):
     )
     presets: List[Dict] = config.default_presets
     config: Dict = TaskSpecConfig()
-
-
-class TaskSpecInspection(BaseModel):
-    """Summary stats for a Task Spec.
-    Audit dates, step count, title, [number of times accessed???]"""
