@@ -21,7 +21,7 @@
   "filename_prompt": "What is the new name for the file? 📝",
   "file_edited": "Edited {name}",
   "copied": "Copy of {name} written to {destination}",
-  "dropped": "'{name}' permanetly deleted from {location} ☠️",
+  "dropped": "'{name}' permanetly deleted from:\n    {location} ☠️",
 
   "nag": "Press enter to continue...",
   "new_title_prompt": "The title of your Task Spec",
