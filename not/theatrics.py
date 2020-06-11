@@ -33,7 +33,8 @@ def marquis(title, description):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    border = "~" * (len(description) + 8)
+    border_length = max(len(title), len(description)) + 8
+    border = "~" * border_length
 
     typer.echo(border)
     typer.echo(f" {title} ")
