@@ -5,7 +5,7 @@ from typing import List, Set
 
 from .localization import polyglot as glot
 
-VALID_TASK_SPEC_EXTENSION_NAMES: List = ["yml", "yaml", "not"]
+VALID_TASK_SPEC_EXTENSION_NAMES: List = ["yml", "yaml"]
 DOT_NOTHING_DIRECTORY_NAME: str = ".nothing"
 STEP_SEPARATOR: str = "\n\n"
 TASK_SPEC_EXT_PATTERN = re.compile(r"(\.not|\.yml|\.yaml)$")

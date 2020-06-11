@@ -17,7 +17,7 @@ class FixturesForCollectFancyListOutput:
         dir_ = tmp_path / DOT_NOTHING_DIRECTORY_NAME
         dir_.mkdir(exist_ok=True)
         (dir_ / "go-wild.yaml").touch(exist_ok=True)
-        (dir_ / "look-within.not").touch(exist_ok=True)
+        (dir_ / "look-within.yml").touch(exist_ok=True)
 
         nested = dir_ / "nested"
         nested.mkdir(exist_ok=True)
@@ -35,19 +35,8 @@ class FixturesForCollectFancyListOutput:
         return dir_
 
     @pytest.fixture
-    def cwd_dot_not_file_in_subdir(self, cwd_dot_nothing_dir):
-        dir_ = cwd_dot_nothing_dir.parent / "nested"
-
-        dir_.mkdir(exist_ok=True)
-        (dir_ / "find-yourself.yml").touch(exist_ok=True)
-
-    @pytest.fixture
     def patched_home_and_cwd(
-        self,
-        home_dot_nothing_dir,
-        cwd_dot_nothing_dir,
-        cwd_dot_not_file_in_subdir,  # included so this file persists in test filesystem
-        monkeypatch,
+        self, home_dot_nothing_dir, cwd_dot_nothing_dir, monkeypatch
     ):
         def mock_home():
             return home_dot_nothing_dir.parent
@@ -67,18 +56,13 @@ class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
         [
             (
                 DirectoryChoicesForListCommand.cwd,
-                {
-                    "cwd": {
-                        "./.nothing": ["pasta-from-scratch"],
-                        "./nested": ["find-yourself"],
-                    }
-                },
+                {"cwd": {"./.nothing": ["pasta-from-scratch"]}},
             ),
             (
                 DirectoryChoicesForListCommand.home,
                 {
                     "home": {
-                        "~/.nothing": ["go-wild", "look-within"],
+                        "~/.nothing": ["look-within", "go-wild"],
                         "~/.nothing/nested": ["practice"],
                     }
                 },
@@ -86,12 +70,9 @@ class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
             (
                 DirectoryChoicesForListCommand.both,
                 {
-                    "cwd": {
-                        "./.nothing": ["pasta-from-scratch"],
-                        "./nested": ["find-yourself"],
-                    },
+                    "cwd": {"./.nothing": ["pasta-from-scratch"]},
                     "home": {
-                        "~/.nothing": ["go-wild", "look-within"],
+                        "~/.nothing": ["look-within", "go-wild"],
                         "~/.nothing/nested": ["practice"],
                     },
                 },

@@ -1,5 +1,4 @@
 """pretty printing utilities for not"""
-from itertools import chain
 from pathlib import Path
 from textwrap import indent
 from typing import Any, Dict, Iterator, List, Tuple
@@ -151,15 +150,11 @@ def _collect_fancy_list_input(
 
     if show_cwd or show_both:
         task_specs_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-            "*", Path.cwd(), recurse=True
-        )
-        dot_not_files_in_cwd = Path.cwd().glob("**/*.not")
-        any_task_specs_in_cwd = chain(
-            task_specs_in_cwd_dot_nothing_dir, dot_not_files_in_cwd
+            "*", Path.cwd() / DOT_NOTHING_DIRECTORY_NAME, recurse=True
         )
 
         names_by_dir["cwd"] = task_spec_names_by_parent_dir_name(
-            any_task_specs_in_cwd, base_dir="cwd"
+            task_specs_in_cwd_dot_nothing_dir, base_dir="cwd"
         )
 
     return names_by_dir

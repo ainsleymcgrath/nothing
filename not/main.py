@@ -53,7 +53,7 @@ def new(
     ctx: typer.Context,
     task_spec_name: str = typer.Argument(None),
     destination_dir: Path = config.default_destination_dir,
-    extension: str = "not",
+    extension: str = "yml",
     expert: bool = False,
     edit_after_write: bool = config.edit_after_write,
     overwrite: bool = False,

@@ -57,12 +57,8 @@ def task_spec_location(task_spec_name: str) -> Union[Path, None]:
         for path in cwd_dot_nothing_dir
     )
 
-    dot_not_files_below_cwd = Path.cwd().glob(f"**/{task_spec_name}.not")
-
     any_place_the_task_spec_could_be = chain(
-        dot_not_files_below_cwd,
-        *task_specs_below_cwd_dot_nothing_dir,
-        *task_specs_in_home_dot_nothing_dir,
+        *task_specs_below_cwd_dot_nothing_dir, *task_specs_in_home_dot_nothing_dir
     )
 
     return next(any_place_the_task_spec_could_be, None)
