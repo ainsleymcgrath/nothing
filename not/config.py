@@ -2,6 +2,7 @@
 from pathlib import Path
 from pydantic import BaseSettings
 
+from .constants import HOME_DOT_NOTHING_DIR
 from .localization import polyglot as glot
 
 
@@ -41,4 +42,4 @@ class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
     # commands
     interactive_new: bool = True
     edit_after_write: bool = True
-    default_destination_dir: Path = Path.cwd() / ".nothing"
+    default_destination_dir: Path = HOME_DOT_NOTHING_DIR

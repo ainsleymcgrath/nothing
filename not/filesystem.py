@@ -9,7 +9,10 @@ from typing_extensions import Literal
 from ruamel.yaml import YAML
 
 from .constants import (
-    DOT_NOTHING_DIRECTORY_NAME,
+    CWD,
+    CWD_DOT_NOTHING_DIR,
+    HOME,
+    HOME_DOT_NOTHING_DIR,
     TASK_SPEC_EXT_PATTERN,
     VALID_TASK_SPEC_EXTENSION_NAMES,
 )
@@ -44,34 +47,31 @@ def task_spec_location(task_spec_name: str) -> Union[Path, None]:
     """Take the name of a Task Spec, find the corresponding file, and return its
     canonical location as a path, if it exists"""
 
-    cwd_dot_nothing_dir, home_dot_nothing_dir = (
-        path.glob(DOT_NOTHING_DIRECTORY_NAME) for path in [Path.cwd(), Path.home()]
+    task_specs_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        task_spec_name, HOME_DOT_NOTHING_DIR, recurse=True
     )
 
-    task_specs_in_home_dot_nothing_dir: Iterator[Path] = chain(
-        glob_each_extension(task_spec_name, path) for path in home_dot_nothing_dir
-    )
-
-    task_specs_below_cwd_dot_nothing_dir: Iterator[Path] = chain(
-        glob_each_extension(task_spec_name, path, recurse=True)
-        for path in cwd_dot_nothing_dir
+    task_specs_below_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        task_spec_name, CWD_DOT_NOTHING_DIR, recurse=True
     )
 
     any_place_the_task_spec_could_be = chain(
-        *task_specs_below_cwd_dot_nothing_dir, *task_specs_in_home_dot_nothing_dir
+        task_specs_below_cwd_dot_nothing_dir, task_specs_in_home_dot_nothing_dir
     )
 
     return next(any_place_the_task_spec_could_be, None)
 
 
-def friendly_prefix_for_path(path: Path, location: Literal["home", "cwd"]):
+def friendly_prefix_for_path(path: Path):
     """Take a long path and return it with a friendly . or ~ where applicable"""
 
-    # TODO ditch the location kwarg, do check if path is child of cwd?
-    prefixes_by_location = {glot["home"]: "~", glot["cwd"]: "."}
-    verbose_prefix = str(getattr(Path, location)())
+    path_string, home_string, cwd_string = map(str, [path, HOME, CWD])
 
-    return str(path).replace(verbose_prefix, prefixes_by_location[location])
+    short_prefix, verbose_prefix = (
+        (".", cwd_string) if cwd_string in path_string else ("~", home_string)
+    )
+
+    return path_string.replace(verbose_prefix, short_prefix)
 
 
 def task_spec_names_by_parent_dir_name(
@@ -87,7 +87,7 @@ def task_spec_names_by_parent_dir_name(
         if not path.is_file():
             continue
 
-        key = friendly_prefix_for_path(path.parent, base_dir)
+        key = friendly_prefix_for_path(path.parent)
         if key in accum_dict:
             accum_dict[key] += [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
             continue

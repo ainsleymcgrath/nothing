@@ -2,9 +2,10 @@
 # pylint: disable=no-self-use
 
 """Tests for not.theatrics, mostly the private utils"""
-from pathlib import Path
 import pytest
 
+from .. import filesystem
+from .. import theatrics
 from ..constants import DirectoryChoicesForListCommand, DOT_NOTHING_DIRECTORY_NAME
 from ..theatrics import _collect_fancy_list_input
 
@@ -35,17 +36,13 @@ class FixturesForCollectFancyListOutput:
         return dir_
 
     @pytest.fixture
-    def patched_home_and_cwd(
-        self, home_dot_nothing_dir, cwd_dot_nothing_dir, monkeypatch
-    ):
-        def mock_home():
-            return home_dot_nothing_dir.parent
+    def patched_dirs(self, home_dot_nothing_dir, cwd_dot_nothing_dir, monkeypatch):
 
-        def mock_cwd():
-            return cwd_dot_nothing_dir.parent
+        monkeypatch.setattr(theatrics, "CWD_DOT_NOTHING_DIR", cwd_dot_nothing_dir)
+        monkeypatch.setattr(theatrics, "HOME_DOT_NOTHING_DIR", home_dot_nothing_dir)
 
-        monkeypatch.setattr(Path, "cwd", mock_cwd)
-        monkeypatch.setattr(Path, "home", mock_home)
+        monkeypatch.setattr(filesystem, "CWD", cwd_dot_nothing_dir.parent)
+        monkeypatch.setattr(filesystem, "HOME", home_dot_nothing_dir.parent)
 
 
 class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
@@ -79,7 +76,7 @@ class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
             ),
         ],
     )
-    def test_include_options(self, from_dir, expected, patched_home_and_cwd):
+    def test_include_options(self, from_dir, expected, patched_dirs):
         task_spec_names_by_dir = _collect_fancy_list_input(from_dir)
 
         assert task_spec_names_by_dir == expected

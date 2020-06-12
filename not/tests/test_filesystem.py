@@ -7,6 +7,7 @@ from typing import Iterator
 
 import pytest
 
+from .. import filesystem
 from ..constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
 from ..filesystem import (
     deserialize_task_spec_file,
@@ -23,7 +24,7 @@ SAMPLE_TASK_SPEC_NAMES = {"code_review_checklist", "release_hounds"}
 
 @pytest.fixture
 def dir_with_each_file_type_in_dot_nothing_subdir(tmp_path) -> Path:
-    """The path to a directory containing 3 Task Spec files,
+    """The path to a directory containing 2 Task Spec files,
     one with each of the valid extensions."""
 
     for name, extension in zip(SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES):
@@ -38,19 +39,21 @@ def dir_with_each_file_type_in_dot_nothing_subdir(tmp_path) -> Path:
 
 @pytest.fixture
 def patched_cwd(dir_with_each_file_type_in_dot_nothing_subdir, monkeypatch) -> None:
-    def mock_dir():
-        return Path(dir_with_each_file_type_in_dot_nothing_subdir)
 
-    monkeypatch.setattr(Path, "cwd", mock_dir)
+    monkeypatch.setattr(
+        filesystem, "CWD_DOT_NOTHING_DIR", dir_with_each_file_type_in_dot_nothing_subdir
+    )
     return dir_with_each_file_type_in_dot_nothing_subdir
 
 
 @pytest.fixture
 def patched_home(dir_with_each_file_type_in_dot_nothing_subdir, monkeypatch) -> None:
-    def mock_dir():
-        return Path(dir_with_each_file_type_in_dot_nothing_subdir)
+    monkeypatch.setattr(
+        filesystem,
+        "HOME_DOT_NOTHING_DIR",
+        dir_with_each_file_type_in_dot_nothing_subdir,
+    )
 
-    monkeypatch.setattr(Path, "home", mock_dir)
     return dir_with_each_file_type_in_dot_nothing_subdir
 
 
@@ -150,31 +153,30 @@ class TestFriendlyPrefixForPath:
     """Test suite for not.theatrics._friendly_prefix_for_path"""
 
     @pytest.fixture
-    def path_in_patched_filesystem(self, tmp_path, monkeypatch):
+    def file_in_home(self, tmp_path, monkeypatch):
+        file = tmp_path / "poems.txt"
+        file.touch(exist_ok=True)
+
+        monkeypatch.setattr(filesystem, "HOME", tmp_path)
+
+        return file
+
+    @pytest.fixture
+    def file_in_cwd(self, tmp_path, monkeypatch):
         cwd = tmp_path / "working_directory"
         cwd.mkdir(exist_ok=True)
         file = cwd / "stories.txt"
         file.touch(exist_ok=True)
 
-        def mock_home():
-            return tmp_path
-
-        def mock_cwd():
-            return cwd
-
-        monkeypatch.setattr(Path, "cwd", mock_cwd)
-        monkeypatch.setattr(Path, "home", mock_home)
+        monkeypatch.setattr(filesystem, "CWD", cwd)
 
         return file
 
-    @pytest.mark.parametrize(
-        "location, expected",
-        [("home", "~/working_directory/stories.txt"), ("cwd", "./stories.txt")],
-    )
-    def test_valid_locations(self, location, expected, path_in_patched_filesystem):
-        assert (
-            friendly_prefix_for_path(path_in_patched_filesystem, location) == expected
-        )
+    def test_home_prefix(self, file_in_home):
+        assert friendly_prefix_for_path(file_in_home) == "~/poems.txt"
+
+    def test_cwd_prefix(self, file_in_cwd):
+        assert friendly_prefix_for_path(file_in_cwd) == "./stories.txt"
 
 
 class TestSerializeTaskSpec:
