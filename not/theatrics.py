@@ -23,17 +23,24 @@ from .models import Step, TaskSpec
 config = GlobalConfig()
 
 
-def dramatic_title(title):
-    """A title that
+def marquis(title, description):
+    """A display of the title + description that
 
-    ###############
-    Looks Like This
-    ###############
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     Looks Like This
+
+        'With a description in quotes'
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    border = "=" * len(title)
+    border_length = max(len(title), len(description)) + 8
+    border = "~" * border_length
+
     typer.echo(border)
-    typer.echo(title)
+    typer.echo()
+    typer.echo(f" {title} ")
+    typer.echo(f"    '{description}' ")
+    typer.echo()
     typer.echo(border)
     typer.echo()
 
@@ -41,8 +48,7 @@ def dramatic_title(title):
 def interactive_walkthrough(task_spec: TaskSpec) -> None:
     """Interactively walk through a task spec"""
 
-    # XXX use spec-level config
-    dramatic_title(f"{config.title_prefix}: {task_spec.title}")
+    marquis(task_spec.title, task_spec.description)
 
     context_dict = {}
 
@@ -89,6 +95,7 @@ def prompt_for_new_args(
 
     prompts = (
         (glot["new_title_prompt"], {}),
+        (glot["new_description_prompt"], {}),
         (glot["new_extension_prompt"], {"default": default_extension}),
         (
             glot["new_destination_prompt"],
@@ -266,6 +273,8 @@ def show_dossier(task_spec_name):
     colored_keys = (
         typer.style(field, fg=typer.colors.BRIGHT_BLUE)
         for field in justified_with_colons(
+            glot["title_descriptor"],
+            glot["description_descriptor"],
             glot["full_path_descriptor"],
             glot["step_count_descriptor"],
             glot["context_vars_descriptor"],
@@ -275,16 +284,14 @@ def show_dossier(task_spec_name):
     )
 
     meta_values = (
+        title,
+        obj_meta["description"],
         file_meta["full_path"],
         obj_meta["step_count"],
         obj_meta["context_vars"],
         file_meta["last_accessed"],
         file_meta["last_modified"],
     )
-
-    typer.echo()
-    typer.echo(f"    {title}")
-    typer.echo()
 
     for field, value in zip(colored_keys, meta_values):
         typer.echo(f"{field} {value}")
