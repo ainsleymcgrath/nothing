@@ -20,7 +20,10 @@ class TestClean:
         ]
 
         yield TaskSpecCreate(
-            filename="do-the-thing.yml", title="Do The Thing", steps=steps_for_task
+            filename="do-the-thing.yml",
+            title="Do The Thing",
+            description="How to do the thing",
+            steps=steps_for_task,
         )
 
     @pytest.fixture
@@ -28,7 +31,12 @@ class TestClean:
         yield clean(minimal_task_spec)
 
     def test_unset_fields_are_not_returned(self, cleaned_minimal_task_spec):
-        assert set(cleaned_minimal_task_spec) == {"title", "steps", "context"}, (
+        assert set(cleaned_minimal_task_spec) == {
+            "title",
+            "steps",
+            "context",
+            "description",
+        }, (
             "The only keys on the dict returned are the ones "
             "explicitly set on the input TaskSpec"
         )

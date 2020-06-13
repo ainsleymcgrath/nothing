@@ -7,7 +7,12 @@ import typer
 
 from . import writer
 from .config import GlobalConfig
-from .constants import DirectoryChoicesForListCommand
+from .constants import (
+    CWD_DOT_NOTHING_DIR,
+    DirectoryChoicesForListCommand,
+    HOME_DOT_NOTHING_DIR,
+    ValidExtensions,
+)
 from .filesystem import deserialize_task_spec_file
 from .localization import polyglot as glot
 from .models import TaskSpec, TaskSpecCreate, TaskSpecCreateExpert
@@ -48,54 +53,97 @@ def do(task_spec_name: str):
     interactive_walkthrough(task_spec)
 
 
-@app.command()
+def empty_callback(ctx: typer.Context, value: bool):
+    """Ensure --empty/-E is always called with --name/-N specified"""
+
+    empty_called_without_name = ctx.params.get("task_spec_name") is None and value
+
+    if empty_called_without_name:
+        raise typer.BadParameter(glot["new_empty_callback_warning"])
+
+    return value
+
+
+@app.command(help=glot["new_help"])
 def new(
     ctx: typer.Context,
-    task_spec_name: str = typer.Argument(None),
-    destination_dir: Path = config.default_destination_dir,
-    extension: str = "yml",
-    expert: bool = False,
-    edit_after_write: bool = config.edit_after_write,
-    overwrite: bool = False,
-    interactive: bool = config.interactive_new,
+    task_spec_name: str = typer.Option(
+        None, "--name", "-N", is_eager=True, help=glot["new_task_spec_name_option_help"]
+    ),
+    extension: ValidExtensions = typer.Option(
+        ValidExtensions.yml,
+        "--extension",
+        "-X",
+        help=glot["new_extension_option_help"],
+        show_default=True,
+    ),
+    local: bool = typer.Option(
+        False, "--local", "-L", help=glot["new_local_option_help"]
+    ),
+    empty: bool = typer.Option(
+        False,
+        "--empty",
+        "-E",
+        callback=empty_callback,
+        help=glot["new_empty_option_help"],
+    ),
+    expert: bool = typer.Option(
+        False, "--expert", "-T", help=glot["new_expert_option_help"]
+    ),
+    edit_after: bool = typer.Option(
+        config.edit_after_write,
+        "--edit-after",
+        "-A",
+        help=glot["new_edit_after_option_help"],
+    ),
+    overwrite: bool = typer.Option(
+        False, "--overwrite", "-O", help=glot["new_overwrite_option_help"]
+    ),
 ):
-    """Template out a new Task Spec to the nearest .nothing directory and open with
-    $EDITOR. When no arguments are provided, Task Spec is configured interactively."""
+    """Subcommand for creating new Task Specs"""
 
-    if interactive or task_spec_name is None:
+    destination_dir = HOME_DOT_NOTHING_DIR if not local else CWD_DOT_NOTHING_DIR
+
+    # keep ur eye on the ball, there be mutants here
+    if not empty:
         defaults = {
+            "name": task_spec_name,
             "default_extension": extension,
             "default_destination": destination_dir,
             "expert": expert,
-            "edit_after_write": edit_after_write,
+            "edit_after_write": edit_after,
         }
 
         (
-            task_spec_name,
+            title,
             description,
+            task_spec_name,
             extension,
             destination_dir,
             expert,
-            edit_after_write,
+            edit_after,
         ) = prompt_for_new_args(**defaults)
-        # XXX how to skip prompt when name is specified?
 
     task_spec_filename = f"{task_spec_name}.{extension}"
     task_spec: TaskSpec = (
-        TaskSpecCreate(filename=task_spec_filename, description=description)
-        if not expert
-        else TaskSpecCreateExpert(filename=task_spec_filename, description=description)
+        TaskSpecCreate(filename=task_spec_filename)
+        if empty
+        else TaskSpecCreateExpert(
+            title=title, description=description, filename=task_spec_filename
+        )
+        if expert
+        else TaskSpecCreate(
+            title=title, description=description, filename=task_spec_filename
+        )
     )
 
     try:
-        writer.write(
-            task_spec, destination_dir.expanduser(), force=interactive or overwrite
-        )
+        writer.write(task_spec, destination_dir.expanduser(), force=overwrite)
     except FileExistsError:
         if confirm_overwrite(task_spec_name):
             writer.write(task_spec, destination_dir.expanduser(), force=True)
 
-    if edit_after_write:
+    if edit_after:
         ctx.invoke(edit, task_spec_name=task_spec_name)
 
     success(

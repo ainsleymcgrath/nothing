@@ -3,7 +3,7 @@ from pathlib import Path
 from textwrap import indent
 from typing import Any, Dict, Iterator, List, Tuple
 
-
+from slugify import slugify
 import typer
 
 from .config import GlobalConfig
@@ -93,13 +93,20 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
 
 
 def prompt_for_new_args(
-    default_extension=None, default_destination=None, expert=None, edit_after_write=None
+    name=None,
+    default_extension=None,
+    default_destination=None,
+    expert=None,
+    edit_after_write=None,
 ) -> Iterator[Any]:
     """Prompt for all arguments needed to perform `not do`"""
 
+    title = ask(glot["new_title_prompt"])
+    name = slugify(title) if name is None else name
+
     prompts = (
-        (glot["new_title_prompt"], {}),
         (glot["new_description_prompt"], {}),
+        (glot["new_name_prompt"], {"default": name}),
         (glot["new_extension_prompt"], {"default": default_extension}),
         (
             glot["new_destination_prompt"],
@@ -109,7 +116,7 @@ def prompt_for_new_args(
         (glot["new_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
     )
 
-    return multiprompt(*prompts)
+    return (title, *multiprompt(*prompts))
 
 
 def prompt_for_copy_args(

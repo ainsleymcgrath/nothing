@@ -90,6 +90,7 @@ class TaskSpecCreate(TaskSpec):
 
     filename: str
     title = config.default_title
+    description = config.default_description
     steps: List[Step] = steps_from_yaml_block(config.default_steps)
     context: List[ContextItem] = context_items_from_yaml_list(
         config.default_context_list

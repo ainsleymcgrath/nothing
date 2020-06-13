@@ -32,6 +32,7 @@ class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
 
     # content defaults
     default_title = glot["default_title"]
+    default_description = glot["default_description"]
     default_context_list = [
         {glot["default_context_name_name"]: glot["default_context_name_prompt"]}
     ]
