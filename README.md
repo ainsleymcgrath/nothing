@@ -1,86 +1,275 @@
 # Nothing (`not`)
 
-Nothing help coder be more smarter, some cooler, less dumber. `not`.
+Nothing helps coders be more smarter, some cooler, less dumber, and much faster. `not`.
+
+Take hold of the key 🔑 to gradual automation.
+
+## Installation
+
+`nothing-cli` is very young, only an infant. 🐣
+
+If you'd like to give it a try, it's available ion PyPi test.
+
+```shell
+pip install --index-url https://test.pypi.org/legacy/ nothing-cli
+```
+
+In part due to its youth, only Python 3.7 and above are supported. 😬
+
+
+The command for interacting with the tool is `not`. Get the overview of its subcommands like so:
+
+```shell
+not --help
+```
+
+Your installation should come with a sample Procedure, aptly named `nothing`. Get an overview of what it does and where it lives with the `describe` subcommand:
+
+```shell
+not describe nothing
+```
+
+You can invoke it with the `do` subcommand:
+
+```shell
+not do nothing
+```
+
+You'll be walked through the Procedure for doing... nothing. Enjoy! Folks don't do enough nothing, in my opinion.
 
 ## Inspo & Rationale
 
-Once upon a time we all read this brief article about ["do-nothing scripting"](https://blog.danslimmon.com/2019/07/15/do-nothing-scripting-the-key-to-gradual-automation/).
+Once upon a time, we all read this article about ["do-nothing scripting"](https://blog.danslimmon.com/2019/07/15/do-nothing-scripting-the-key-to-gradual-automation/) by Dan Slimmon.
 
-Very cool, but even those scripts take time!
+It's an incredible concept. I've personally wasted hours of my life trying to turn ever-more-complex aliases into [shell functions](https://github.com/ainsleymcgrath/bin/blob/master/.pydev.sh). I've spent days attempting to automate scripts to do extremely infrequent –but highly toilsome– tasks that [probably would not even have taken hours manually](https://github.com/ainsleymcgrath/dotfiles/commit/46add94cb7b5ad068fd7b23fc8305aba85c63762).
 
-[Juxtapose OG example against Recipe version]
+"Toil," as Slimmon terms it, sucks. We'll do anything to get away from it. Do-nothing scripts are a place to meet halfway: Nowhere near the cognitive overhead of writing an actual automation script, but more interactive and dynamic than pure documentation.
 
-More why:
+But, even logic-free & sugary sweet do-nothing scripts are written in the language of your choice can be fragile. Your stylistic decisions rot. There's no formality to creation or maintenance. Hardcoded strings sprinkled on off-the-cuff implementation. Suddenly, toil returns. Utility vanishes.
 
-- Ease automation woes (dotfile scripts lol). Clip your wax wings early before you try to build robots.
-- Fast to use! Build these things rampantly at the project level
-    - Attach them to commit hooks?
-    - Keep yourself accountable
-    - Bring consistency to things u do often
-- Shareable
+Realizing this as my team and my friends experimented more with the practice, I did the logical thing: I wrote an entire piece of software to automate the process of writing the code we write to prevent ourselves from writing too much code to automate stuff when we want to stop *toiling* and just write some freaking code.
 
-## Sample
+It's a noble cause, I think. [Insert infrequent terrible process] always goes faster when you can just ask your teammate for that really specific command and copy-paste. Cut them some slack. Get the command from a terminal robot.
 
-Configure your Recipe as simple yaml mixed with simple Python templating:
+### Pudding (The proof is in it)
+
+Here is the original do-nothing script example from Slimmon
+
+```python
+import sys
+
+def wait_for_enter():
+    raw_input("Press Enter to continue: ")
+
+class CreateSSHKeypairStep(object):
+    def run(self, context):
+        print("Run:")
+        print("   ssh-keygen -t rsa -f ~/{0}".format(context["username"]))
+        wait_for_enter()
+
+class GitCommitStep(object):
+    def run(self, context):
+        print("Copy ~/new_key.pub into the `user_keys` Git repository, then run:")
+        print("    git commit {0}".format(context["username"]))
+        print("    git push")
+        wait_for_enter()
+
+class WaitForBuildStep(object):
+    build_url = "http://example.com/builds/user_keys"
+    def run(self, context):
+        print("Wait for the build job at {0} to finish".format(self.build_url))
+        wait_for_enter()
+
+class RetrieveUserEmailStep(object):
+    dir_url = "http://example.com/directory"
+    def run(self, context):
+        print("Go to {0}".format(self.dir_url))
+        print("Find the email address for user `{0}`".format(context["username"]))
+        context["email"] = raw_input("Paste the email address and press enter: ")
+
+class SendPrivateKeyStep(object):
+    def run(self, context):
+        print("Go to 1Password")
+        print("Paste the contents of ~/new_key into a new document")
+        print("Share the document with {0}".format(context["email"]))
+        wait_for_enter()
+
+if __name__ == "__main__":
+    context = {"username": sys.argv[1]}
+    procedure = [
+        CreateSSHKeypairStep(),
+        GitCommitStep(),
+        WaitForBuildStep(),
+        RetrieveUserEmailStep(),
+        SendPrivateKeyStep(),
+    ]
+    for step in procedure:
+        step.run(context)
+    print("Done.")
+```
+
+Here it is translated to a `nothing-cli` Procedure:
 
 ```yaml
 ---
-title: A sample set of do-nothing instructions
-
-# the user will be prompted to provide these values
-# and the values will persist through the run
+title: Provision New User Account
+description: Create and distribute an SSH key for a new user.
 context:
-  - current_user_name
-  - what_user_accomplished_today
-
-# a set of steps is most easily represented as block scalar
-# each step is simply denoted as a line break
-# plain python templates are used to interpolate context
+  - username
+  - build_url
+  - dir_url
+  - email: Copy the new user's email and paste here
 steps: |-
-  Take a good look at yourself, {current_user_name}.
+  Run:
+    ssh-keygen -t rsa -f ~/{username}
 
-  I heard you accomplished something great today: {what_user_accomplished_today}.
-  Give yourself a pat on the back!
+  Copy ~/new_key.pub into the `user_keys` Git repository, then run:
+    git commit {username}
+    git push
 
-# https://yaml-multiline.info/#block-scalars
+  Wait for the build job at {build_url} to finish:
+
+  Go to 1Password
+  Paste the contents of ~/new_key into a new document
+  Share the document with {email}
 ```
 
-Run it like so:
+I know it's impolite to talk about LOC, but the `nothing-cli` procedure version weighs in at 17 to the original 43 (excluding blank lines). The drastically improved readability and editability should speak for itself.
+
+#### Things to Note
+
+You'll notice that context is specified in 2 ways. The first three items are specified using "simple context," where the value is merely a yaml list item. The user is prompted for those values with a default phrase: *Please provide a value for [variable name]*. The last context item uses dictionary syntax, allowing the specification of a friendlier prompt.
+
+Next, the funny looking `|-` next to `steps` specifies a [block scalar](https://yaml-multiline.info/#block-scalars). The very existence of this yaml feature was a great inspiration to create this tool in the first place. It functions as a sort of lawless playground for plain text, supporting:
+
+- Multiline text and indentation.
+- A clear visual delineation of content from configuration
+- The specification of each step as a paragraph, which is is both obvious to read and easy to edit.
+
+It is worth mentioning, however, that the current version of `nothing-cli` is not able to replicate the original script exactly.
+
+If you run them side-by-side, you'll see that the original uses hard-coded values for `dir_url` and `build_url`. Additionally, the user is prompted for `email` in the middle of the script, rather than at the end. These omissions are discussed in the Planned Features section.
+
+## Planned Features
+
+The alpha version of `nothing-cli` was meant to be as focused as possible. For this reason, some mechanics of the original do-nothing script were omitted. They will be implemented, however. **I very strongly welcome contributions from anyone who wants to help out with the growth of this tool. Please email me.**
+
+### Priority Features
+
+These features are high on the todo list.
+
+#### Lazy Context
+
+When using the original do-nothing script, the user is prompted in the middle of the run for a new context variable. In future versions of `nothing-cli`, this mechanic will be supported by "lazy context". The planned syntax is pretty straightforward.
+
+```yaml
+context:
+  - regular_context  # prompted at the beginning
+  - __lazy_context  # prompted before the first reference
+```
+
+Lazy context will still support simple and complex syntax.
+
+#### Presets
+
+In order to set variables that the user will not be prompted for, a `presets` key will be added:
+
+```yaml
+context:
+  - user_wil_be_prompted_for_this
+presets:
+  - this_is_hardcoded: This is the value
+```
+
+### Moonshot Features
+
+The implementation of these features has not been considered far beyond daydreams.
+
+#### Promptless Presets & Context
+
+In an ideal world, users could specify context as usual:
+
+```yaml
+---
+# diet-review.yml
+context:
+  - favorite_food: What's your favorite thing to do?
+```
+
+But then circumvent the prompt by running the Procedure like this:
 
 ```shell
-not do sample
+not do diet-review --favorite-food 'french omelet'
 ```
 
-Want a new one?
+Even more useful would be specifying a this for presets:
+
+```yaml
+---
+# secret-stuff.yml
+presets:
+  - secret_password
+```
+
+Specifying a preset with no value (as a plain yaml list item) would require the Procedure to be run with the value as a command-line option.
 
 ```shell
-not new preflight-checks
-# drops you into your $EDITOR if that's set
+not do secret-stuff # refuses to run
+not do secret-stuff --secret_password 'n3veR $h4re tHis--'
 ```
 
-Didn't like how it turned out? That's fine.
+#### Chaining Procedures
 
-```shell
-not edit preflight-checks
+For the composition-minded, it could be a boon to write small, related Procedures and have them run directly into each other, maybe even sharing context.
+
+This could be specified at runtime:
+
+```yaml
+not do proc-1 --chain proc-2 --chain proc-3
 ```
 
-## Bigger Example
+Or in the Procedure itself:
 
-- Uses dictionary syntax in context
-- Higher config
+```yaml
+---
+# use-chains.yml
+title: Use chains
+description: Demonstration of chain usage
+context:
+  - name
+steps: |-
+  Love yourself and your colleagues, {name}.
 
-## Features
+  Choose composition.
+chain:
+  to: review-chaining
+  pass_context: yes
+```
 
-### Stylish & Modern
+#### Conditional Chaining
 
-- Pleasant interactivity a-la the Nicest CLI tools
-- Colorful & playful since `work_smart == work_less == play_more`
-- Funky (but standard), highly readable YAML format
-- High config
-    - (Give much more thought to where how & when)
+We're getting absolutely crazy here, but adding *several* features could allow for supercharged chains:
 
-### Saving your sweet nothings
+```yaml
+---
+# ci-stuff.yml
+title: CI/CD Toil
+description: Boring CI thing, one day you'll automate. But now now.
+context:
+  # add syntax for limited choice context
+  - deploy_phase[dev/prod]: What kind of deploy are you doing?
+chain:
+   # use context to determine where chain
+  - if:
+      deploy_phase_is: dev  # name mangling 😵
+      to: dev-deploy
+  - if:
+      deploy_phase_is: prod
+      to: prod-deploy
+```
 
-- Can be in a project-specific `.nothing/` directory
-- or system level `~/.nothing`
-- or as a local `*.not` file
+This one is surely a moonshot but damn... I wanna do it 🤩
+
+#### And more!
+
+My head is full of ideas! Perhaps yours is too. If you believe in this tool, drop me a line, I'll be overjoyed and say nice things to you. 😸
