@@ -8,31 +8,31 @@ from typing import Iterator
 import pytest
 
 from .. import filesystem
-from ..constants import VALID_TASK_SPEC_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
+from ..constants import VALID_PROCEDURE_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
 from ..filesystem import (
-    deserialize_task_spec_file,
+    deserialize_procedure_file,
     friendly_prefix_for_path,
     glob_each_extension,
-    task_spec_location,
-    task_spec_object_metadata,
+    procedure_location,
+    procedure_object_metadata,
 )
 from ..localization import polyglot as glot
 
 
-SAMPLE_TASK_SPEC_NAMES = {"code_review_checklist", "release_hounds"}
+SAMPLE_PROCEDURE_NAMES = {"code_review_checklist", "release_hounds"}
 
 
 @pytest.fixture
 def dir_with_each_file_type_in_dot_nothing_subdir(tmp_path) -> Path:
-    """The path to a directory containing 2 Task Spec files,
+    """The path to a directory containing 2 Procedure files,
     one with each of the valid extensions."""
 
-    for name, extension in zip(SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES):
+    for name, extension in zip(SAMPLE_PROCEDURE_NAMES, VALID_PROCEDURE_EXTENSION_NAMES):
         dot_nothing_directory = Path(tmp_path) / DOT_NOTHING_DIRECTORY_NAME
         dot_nothing_directory.mkdir(exist_ok=True)
 
-        task_spec = dot_nothing_directory / f"{name}.{extension}"
-        task_spec.touch(exist_ok=True)
+        procedure = dot_nothing_directory / f"{name}.{extension}"
+        procedure.touch(exist_ok=True)
 
     return tmp_path
 
@@ -57,19 +57,19 @@ def patched_home(dir_with_each_file_type_in_dot_nothing_subdir, monkeypatch) -> 
     return dir_with_each_file_type_in_dot_nothing_subdir
 
 
-class TestTaskSpecLocation:
-    """Test suite for not.filesytem.task_spec_location"""
+class TestProcedureLocation:
+    """Test suite for not.filesytem.procedure_location"""
 
-    @pytest.mark.parametrize("name", SAMPLE_TASK_SPEC_NAMES)
+    @pytest.mark.parametrize("name", SAMPLE_PROCEDURE_NAMES)
     def test_under_home_dot_nothing_dir(self, name, patched_home):
-        location: Path = task_spec_location(name)
+        location: Path = procedure_location(name)
 
         assert name in location.name
         assert patched_home.name in str(location)
 
-    @pytest.mark.parametrize("name", SAMPLE_TASK_SPEC_NAMES)
+    @pytest.mark.parametrize("name", SAMPLE_PROCEDURE_NAMES)
     def test_local_dot_nothing_dir(self, name, patched_cwd):
-        location = task_spec_location(name)
+        location = procedure_location(name)
 
         assert name in location.name
         assert patched_cwd.name in str(location)
@@ -84,9 +84,9 @@ class TestTaskSpecLocation:
 
         return working_directory
 
-    @pytest.mark.parametrize("name", SAMPLE_TASK_SPEC_NAMES)
+    @pytest.mark.parametrize("name", SAMPLE_PROCEDURE_NAMES)
     def test_location_does_not_find_spec_in_parent_dot_nothing_dir(self, name):
-        location = task_spec_location(name)
+        location = procedure_location(name)
 
         assert location is None
 
@@ -100,13 +100,13 @@ class TestGlobEachExtension:
     CLJ_FILE_IN_SUBDIR = "fizz.clj"
 
     @pytest.fixture
-    def dir_with_task_specs_and_other_files_and_subdir(self, tmp_path):
+    def dir_with_procedures_and_other_files_and_subdir(self, tmp_path):
         python_file = tmp_path / self.PYTHON_FILE
         html_file = tmp_path / self.HTML_FILE
-        task_spec_files: Iterator[Path] = (
+        procedure_files: Iterator[Path] = (
             tmp_path / f"{name}.{ext}"
             for name, ext in zip(
-                SAMPLE_TASK_SPEC_NAMES, VALID_TASK_SPEC_EXTENSION_NAMES
+                SAMPLE_PROCEDURE_NAMES, VALID_PROCEDURE_EXTENSION_NAMES
             )
         )
 
@@ -119,34 +119,34 @@ class TestGlobEachExtension:
             python_file,
             html_file,
             file_under_nested_directory,
-            *task_spec_files,
+            *procedure_files,
         ]:
             file.touch(exist_ok=True)
 
         return tmp_path
 
-    def test_without_recurse(self, dir_with_task_specs_and_other_files_and_subdir):
-        task_spec_files_in_dir = glob_each_extension(
-            "*", dir_with_task_specs_and_other_files_and_subdir
+    def test_without_recurse(self, dir_with_procedures_and_other_files_and_subdir):
+        procedure_files_in_dir = glob_each_extension(
+            "*", dir_with_procedures_and_other_files_and_subdir
         )
 
         names_of_returned_files = (
-            path.name.split(".")[-2] for path in task_spec_files_in_dir
+            path.name.split(".")[-2] for path in procedure_files_in_dir
         )
 
-        assert set(names_of_returned_files) == SAMPLE_TASK_SPEC_NAMES
-        assert self.CLJ_FILE_IN_SUBDIR not in task_spec_files_in_dir
+        assert set(names_of_returned_files) == SAMPLE_PROCEDURE_NAMES
+        assert self.CLJ_FILE_IN_SUBDIR not in procedure_files_in_dir
 
-    def test_with_recurse(self, dir_with_task_specs_and_other_files_and_subdir):
-        task_spec_files_in_dir = glob_each_extension(
-            "*", dir_with_task_specs_and_other_files_and_subdir, recurse=True
+    def test_with_recurse(self, dir_with_procedures_and_other_files_and_subdir):
+        procedure_files_in_dir = glob_each_extension(
+            "*", dir_with_procedures_and_other_files_and_subdir, recurse=True
         )
 
         names_of_returned_files = set(
-            path.name.split(".")[-2] for path in task_spec_files_in_dir
+            path.name.split(".")[-2] for path in procedure_files_in_dir
         )
 
-        assert names_of_returned_files == SAMPLE_TASK_SPEC_NAMES
+        assert names_of_returned_files == SAMPLE_PROCEDURE_NAMES
 
 
 class TestFriendlyPrefixForPath:
@@ -179,77 +179,77 @@ class TestFriendlyPrefixForPath:
         assert friendly_prefix_for_path(file_in_cwd) == "./stories.txt"
 
 
-class TestSerializeTaskSpec:
-    """Test suite for filesystem.deserialize_task_spec_file"""
+class TestSerializeProcedure:
+    """Test suite for filesystem.deserialize_procedure_file"""
 
-    def test_serialize_minimal(self, super_minimal_task_spec_file_content):
-        task_spec = deserialize_task_spec_file(super_minimal_task_spec_file_content)
+    def test_serialize_minimal(self, super_minimal_procedure_file_content):
+        procedure = deserialize_procedure_file(super_minimal_procedure_file_content)
         keys_with_values_in_spec = [
-            key for key, value in task_spec.dict().items() if value is not None
+            key for key, value in procedure.dict().items() if value is not None
         ]
 
-        assert len(task_spec.steps) == 2, "Every newline-delimited step is counted"
+        assert len(procedure.steps) == 2, "Every newline-delimited step is counted"
         assert sorted(keys_with_values_in_spec) == ["steps", "title"]
 
-    def test_serialize_with_simple_context(self, task_spec_with_context_as_simple_list):
-        task_spec = deserialize_task_spec_file(task_spec_with_context_as_simple_list)
+    def test_serialize_with_simple_context(self, procedure_with_context_as_simple_list):
+        procedure = deserialize_procedure_file(procedure_with_context_as_simple_list)
 
-        assert len(task_spec.context) == 2
+        assert len(procedure.context) == 2
 
     def test_serialize_with_complex_context(
-        self, task_spec_with_context_as_list_of_mappings
+        self, procedure_with_context_as_list_of_mappings
     ):
-        task_spec = deserialize_task_spec_file(
-            task_spec_with_context_as_list_of_mappings
+        procedure = deserialize_procedure_file(
+            procedure_with_context_as_list_of_mappings
         )
 
-        assert len(task_spec.context) == 3
+        assert len(procedure.context) == 3
 
 
-class TestTaskSpecObjectMetadata:
-    """Test suite for filesytem.task_spec_object_metadata"""
+class TestProcedureObjectMetadata:
+    """Test suite for filesytem.procedure_object_metadata"""
 
-    def test_without_context(self, super_minimal_task_spec_file_content):
-        task_spec = deserialize_task_spec_file(super_minimal_task_spec_file_content)
-        meta = task_spec_object_metadata(task_spec)
+    def test_without_context(self, super_minimal_procedure_file_content):
+        procedure = deserialize_procedure_file(super_minimal_procedure_file_content)
+        meta = procedure_object_metadata(procedure)
 
         expected_context_vars = glot["no_context_to_display_placeholder"]
 
         assert (
             meta["context_vars"] == expected_context_vars
-        ), "Unused context message shown when Task Spec has no context"
+        ), "Unused context message shown when Procedure has no context"
 
-    def test_with_simple_context(self, task_spec_with_context_as_simple_list):
-        task_spec = deserialize_task_spec_file(task_spec_with_context_as_simple_list)
-        meta = task_spec_object_metadata(task_spec)
+    def test_with_simple_context(self, procedure_with_context_as_simple_list):
+        procedure = deserialize_procedure_file(procedure_with_context_as_simple_list)
+        meta = procedure_object_metadata(procedure)
 
         expected_context_vars = ["current_user_name", "what_user_accomplished_today"]
 
         assert (
             meta["context_vars"] == expected_context_vars
-        ), "Var names shown for Task Spec with simple context"
+        ), "Var names shown for Procedure with simple context"
 
-    def test_with_compelx_context(self, task_spec_with_context_as_list_of_mappings):
-        task_spec = deserialize_task_spec_file(
-            task_spec_with_context_as_list_of_mappings
+    def test_with_compelx_context(self, procedure_with_context_as_list_of_mappings):
+        procedure = deserialize_procedure_file(
+            procedure_with_context_as_list_of_mappings
         )
-        meta = task_spec_object_metadata(task_spec)
+        meta = procedure_object_metadata(procedure)
 
         expected_context_vars = ["name", "fave_snack", "destination"]
 
         assert (
             meta["context_vars"] == expected_context_vars
-        ), "Var names shown for Task Spec with complex context"
+        ), "Var names shown for Procedure with complex context"
 
     def test_step_count(
         self,
-        super_minimal_task_spec_file_content,
-        task_spec_with_context_as_list_of_mappings,
+        super_minimal_procedure_file_content,
+        procedure_with_context_as_list_of_mappings,
     ):
-        task_spec_1 = deserialize_task_spec_file(super_minimal_task_spec_file_content)
-        task_spec_2 = deserialize_task_spec_file(
-            task_spec_with_context_as_list_of_mappings
+        procedure_1 = deserialize_procedure_file(super_minimal_procedure_file_content)
+        procedure_2 = deserialize_procedure_file(
+            procedure_with_context_as_list_of_mappings
         )
 
-        assert task_spec_object_metadata(task_spec_1)["step_count"] == 2
-        assert task_spec_object_metadata(task_spec_2)["step_count"] == 4
+        assert procedure_object_metadata(procedure_1)["step_count"] == 2
+        assert procedure_object_metadata(procedure_2)["step_count"] == 4

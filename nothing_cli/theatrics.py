@@ -15,13 +15,13 @@ from .constants import (
 from .localization import polyglot as glot
 from .filesystem import (
     glob_each_extension,
-    deserialize_task_spec_file,
-    task_spec_file_metadata,
-    task_spec_location,
-    task_spec_names_by_parent_dir_name,
-    task_spec_object_metadata,
+    deserialize_procedure_file,
+    procedure_file_metadata,
+    procedure_location,
+    procedure_names_by_parent_dir_name,
+    procedure_object_metadata,
 )
-from .models import Step, TaskSpec
+from .models import Step, Procedure
 
 
 config = GlobalConfig()
@@ -49,27 +49,27 @@ def marquis(title, description):
     typer.echo()
 
 
-def interactive_walkthrough(task_spec: TaskSpec) -> None:
-    """Interactively walk through a task spec"""
+def interactive_walkthrough(procedure: Procedure) -> None:
+    """Interactively walk through a Procedure"""
 
-    marquis(task_spec.title, task_spec.description)
+    marquis(procedure.title, procedure.description)
 
     context_dict = {}
 
-    if task_spec.context:
-        for item in task_spec.context:
+    if procedure.context:
+        for item in procedure.context:
             context_value = typer.prompt(item.prompt)
             context_dict[item.var_name] = context_value
 
     typer.echo()
-    for step in task_spec.steps:
+    for step in procedure.steps:
         run_step(step, context_dict)
 
     typer.echo(config.completion_message)
 
 
 def run_step(step: Step, context: Dict):
-    """Run just one Step in a TaskSpec"""
+    """Run just one Step in a Procedure"""
     typer.echo(f"{config.step_prefix} {step.number}:")
 
     try:
@@ -149,7 +149,7 @@ def _collect_fancy_list_input(
 
     Returns a dict with a key each for cwd and home.
     The values are dicts where the keys are human-friendly paths
-    and the values are lists of Task Spec names."""
+    and the values are lists of Procedure names."""
 
     show_both: bool = showing_from_dir is DirectoryChoicesForListCommand.both
     show_home: bool = showing_from_dir is DirectoryChoicesForListCommand.home
@@ -158,67 +158,67 @@ def _collect_fancy_list_input(
     names_by_dir = {}
 
     if show_home or show_both:
-        task_specs_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        procedures_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
             "*", HOME_DOT_NOTHING_DIR, recurse=True
         )
 
-        names_by_dir["home"] = task_spec_names_by_parent_dir_name(
-            task_specs_in_home_dot_nothing_dir, base_dir="home"
+        names_by_dir["home"] = procedure_names_by_parent_dir_name(
+            procedures_in_home_dot_nothing_dir, base_dir="home"
         )
 
     if show_cwd or show_both:
-        task_specs_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        procedures_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
             "*", CWD_DOT_NOTHING_DIR, recurse=True
         )
 
-        names_by_dir["cwd"] = task_spec_names_by_parent_dir_name(
-            task_specs_in_cwd_dot_nothing_dir, base_dir="cwd"
+        names_by_dir["cwd"] = procedure_names_by_parent_dir_name(
+            procedures_in_cwd_dot_nothing_dir, base_dir="cwd"
         )
 
     return names_by_dir
 
 
 def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
-    """Show a pretty output of the task spec files contained in the specified dir."""
+    """Show a pretty output of the Procedure files contained in the specified dir."""
 
-    task_spec_names_by_directory: Dict = _collect_fancy_list_input(showing_from_dir)
+    procedure_names_by_directory: Dict = _collect_fancy_list_input(showing_from_dir)
 
-    for base_dir, subdir_dict in task_spec_names_by_directory.items():
+    for base_dir, subdir_dict in procedure_names_by_directory.items():
         header = typer.style(
             f"[ {glot['GLOBAL'] if base_dir == 'home' else glot['LOCAL']} ]\n",
             typer.colors.BRIGHT_BLUE,
         )
         typer.echo(header)
 
-        for dir_name, task_spec_list in subdir_dict.items():
+        for dir_name, procedure_list in subdir_dict.items():
             subdir_header = typer.style(
                 indent(f"{dir_name}/", "  "), fg=typer.colors.CYAN
             )
             typer.echo(subdir_header)
 
-            for i, name in enumerate(task_spec_list):
+            for i, name in enumerate(procedure_list):
                 typer.echo(indent(name, "    "))
-                if i == len(task_spec_list) - 1:
+                if i == len(procedure_list) - 1:
                     typer.echo()
 
 
-def confirm_overwrite(task_spec_name) -> bool:
-    """Prompt y/n when user is attempting to create a Task Spec with the same
+def confirm_overwrite(procedure_name) -> bool:
+    """Prompt y/n when user is attempting to create a Procedure with the same
     name as an existing one"""
 
     existence_warning = typer.style(
-        glot.localized("overwrite_warn", {"name": task_spec_name}),
+        glot.localized("overwrite_warn", {"name": procedure_name}),
         fg=typer.colors.YELLOW,
     )
 
     return typer.confirm(existence_warning, abort=True)
 
 
-def confirm_drop(task_spec_name) -> bool:
-    """Prompt y/n when user is about to delete a Task Spec file"""
+def confirm_drop(procedure_name) -> bool:
+    """Prompt y/n when user is about to delete a Procedure file"""
 
     drop_is_destructive_warning = typer.style(
-        glot.localized("drop_warn", {"name": task_spec_name}), fg=typer.colors.YELLOW
+        glot.localized("drop_warn", {"name": procedure_name}), fg=typer.colors.YELLOW
     )
 
     return typer.confirm(drop_is_destructive_warning, abort=True)
@@ -245,7 +245,7 @@ def ask(question, **prompt_kwargs) -> Any:
 
 # TODO: raise typer.Abort() when called
 def warn_missing_file(name):
-    """A generic warning when a Task Spec with the specified name does not exist"""
+    """A generic warning when a Procedure with the specified name does not exist"""
 
     message = typer.style(
         glot.localized("missing_file_warn", {"name": name}), fg=typer.colors.YELLOW
@@ -265,19 +265,19 @@ def justified_with_colons(*strings) -> List[str]:
     return [string.ljust(width, " ") + ": " for string in strings]
 
 
-def show_dossier(task_spec_name):
-    """A pretty-printed overview of some Task Spec metadata"""
+def show_dossier(procedure_name):
+    """A pretty-printed overview of some Procedure metadata"""
 
-    file_location: Path = task_spec_location(task_spec_name)
+    file_location: Path = procedure_location(procedure_name)
 
     if file_location is None:
-        warn_missing_file(task_spec_name)
+        warn_missing_file(procedure_name)
         return
 
-    task_spec: TaskSpec = deserialize_task_spec_file(file_location)
+    procedure: Procedure = deserialize_procedure_file(file_location)
 
-    file_meta = task_spec_file_metadata(file_location)
-    obj_meta = task_spec_object_metadata(task_spec)
+    file_meta = procedure_file_metadata(file_location)
+    obj_meta = procedure_object_metadata(procedure)
 
     title = typer.style(obj_meta["title"], bold=True)
 

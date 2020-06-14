@@ -6,8 +6,8 @@ from .constants import HOME_DOT_NOTHING_DIR
 from .localization import polyglot as glot
 
 
-class TaskSpecConfig(BaseSettings):
-    """Setting that can be set globally or inside a specific Task Spec file.
+class ProcedureConfig(BaseSettings):
+    """Setting that can be set globally or inside a specific Procedure file.
     The settings that make sense for usage on a specific file."""
 
     # content defaults
@@ -26,7 +26,7 @@ class TaskSpecConfig(BaseSettings):
     # XXX probably will not implement
 
 
-class GlobalConfig(TaskSpecConfig):  # XXX think about inheriting here...
+class GlobalConfig(ProcedureConfig):  # XXX think about inheriting here...
     """Adds in application level settings that don't
     make sense at the individual-spec level"""
 

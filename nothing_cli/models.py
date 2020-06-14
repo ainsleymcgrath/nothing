@@ -3,14 +3,14 @@ from typing import Dict, List, Union
 from pydantic import BaseModel
 
 from .constants import STEP_SEPARATOR
-from .config import GlobalConfig, TaskSpecConfig
+from .config import GlobalConfig, ProcedureConfig
 
 
 config = GlobalConfig()
 
 
 class Step(BaseModel):
-    """A step within a task.
+    """A step within a procedure.
 
     self.template vars is a list of the kwargs needed to format self.prompt"""
 
@@ -37,7 +37,7 @@ class ContextItem(BaseModel):
 
     @property
     def is_complex(self):
-        """In a Task Spec file, if a context item is denoted as a mapping,
+        """In a Procedure file, if a context item is denoted as a mapping,
         then it is considered "complex"""
 
         return self.prompt != config.context_prompt.format(self.var_name)
@@ -71,8 +71,8 @@ def context_items_from_yaml_list(
     ]
 
 
-class TaskSpec(BaseModel):
-    """A Task Spec file as a Python object.
+class Procedure(BaseModel):
+    """A Procedure file as a Python object.
     Can be initialized without filename since it's mostly
     here for deserializating spec files"""
 
@@ -82,11 +82,11 @@ class TaskSpec(BaseModel):
     steps: List[Step]
     context: List[ContextItem] = None
     presets: List[Dict] = None
-    config: TaskSpecConfig = None
+    config: ProcedureConfig = None
 
 
-class TaskSpecCreate(TaskSpec):
-    """Serializeable to a basic Task Spec file, the default for `not new`"""
+class ProcedureCreate(Procedure):
+    """Serializeable to a basic Procedure file, the default for `not new`"""
 
     filename: str
     title = config.default_title
@@ -97,8 +97,8 @@ class TaskSpecCreate(TaskSpec):
     )
 
 
-class TaskSpecCreateExpert(TaskSpec):
-    """Serializeable to a Task Spec file with all optional keys exposed"""
+class ProcedureCreateExpert(Procedure):
+    """Serializeable to a Procedure file with all optional keys exposed"""
 
     filename: str
     title = config.default_title
@@ -107,4 +107,4 @@ class TaskSpecCreateExpert(TaskSpec):
         config.default_context_list
     )
     presets: List[Dict] = config.default_presets
-    config: Dict = TaskSpecConfig()
+    config: Dict = ProcedureConfig()
