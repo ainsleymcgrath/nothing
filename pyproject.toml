@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "not"
-version = "0.1.0"
+version = "0.0.1"
 description = "Nothing helps coder be more smarter & less dumber."
 authors = ["Ainsley McGrath <mcgrath.ainsley@gmail.com>"]
 readme = "README.md"
