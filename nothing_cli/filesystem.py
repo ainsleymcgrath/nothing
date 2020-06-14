@@ -13,8 +13,8 @@ from .constants import (
     CWD_DOT_NOTHING_DIR,
     HOME,
     HOME_DOT_NOTHING_DIR,
-    TASK_SPEC_EXT_PATTERN,
-    VALID_TASK_SPEC_EXTENSION_NAMES,
+    PROCEDURE_EXT_PATTERN,
+    VALID_PROCEDURE_EXTENSION_NAMES,
 )
 from .localization import polyglot as glot
 from .models import (
@@ -22,44 +22,44 @@ from .models import (
     context_items_from_yaml_list,
     Step,
     steps_from_yaml_block,
-    TaskSpec,
+    Procedure,
 )
 
 yaml = YAML()
 
 
 def glob_each_extension(
-    task_spec_name_glob: str, path: Path, recurse=False
+    procedure_name_glob: str, path: Path, recurse=False
 ) -> Iterator[Path]:
-    """For each extention in not.constants.VALID_TASK_SPEC_EXTENSION_NAMES,
-    glob for the provided task_spec_name"""
+    """For each extention in not.constants.VALID_PROCEDURE_EXTENSION_NAMES,
+    glob for the provided procedure_name"""
 
-    for ext in VALID_TASK_SPEC_EXTENSION_NAMES:
+    for ext in VALID_PROCEDURE_EXTENSION_NAMES:
         glob_str = (
-            f"**/{task_spec_name_glob}.{ext}"
+            f"**/{procedure_name_glob}.{ext}"
             if recurse
-            else f"{task_spec_name_glob}.{ext}"
+            else f"{procedure_name_glob}.{ext}"
         )
         yield from path.glob(glob_str)
 
 
-def task_spec_location(task_spec_name: str) -> Union[Path, None]:
-    """Take the name of a Task Spec, find the corresponding file, and return its
+def procedure_location(procedure_name: str) -> Union[Path, None]:
+    """Take the name of a Procedure, find the corresponding file, and return its
     canonical location as a path, if it exists"""
 
-    task_specs_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-        task_spec_name, HOME_DOT_NOTHING_DIR, recurse=True
+    procedures_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        procedure_name, HOME_DOT_NOTHING_DIR, recurse=True
     )
 
-    task_specs_below_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-        task_spec_name, CWD_DOT_NOTHING_DIR, recurse=True
+    procedures_below_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+        procedure_name, CWD_DOT_NOTHING_DIR, recurse=True
     )
 
-    any_place_the_task_spec_could_be = chain(
-        task_specs_below_cwd_dot_nothing_dir, task_specs_in_home_dot_nothing_dir
+    any_place_the_procedure_could_be = chain(
+        procedures_below_cwd_dot_nothing_dir, procedures_in_home_dot_nothing_dir
     )
 
-    return next(any_place_the_task_spec_could_be, None)
+    return next(any_place_the_procedure_could_be, None)
 
 
 def friendly_prefix_for_path(path: Path):
@@ -74,11 +74,11 @@ def friendly_prefix_for_path(path: Path):
     return path_string.replace(verbose_prefix, short_prefix)
 
 
-def task_spec_names_by_parent_dir_name(
+def procedure_names_by_parent_dir_name(
     paths: Iterable[Path], base_dir: Literal["home", "cwd"] = None
 ) -> Dict[str, List[str]]:
     """Helper for theatrics._collect_fancy_list_input.
-    Returns a dict with friendly path name keys and lists of friendly task spec
+    Returns a dict with friendly path name keys and lists of friendly Procedure
     names as values."""
 
     accum_dict = {}
@@ -89,19 +89,19 @@ def task_spec_names_by_parent_dir_name(
 
         key = friendly_prefix_for_path(path.parent)
         if key in accum_dict:
-            accum_dict[key] += [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
+            accum_dict[key] += [PROCEDURE_EXT_PATTERN.sub("", path.name)]
             continue
 
-        accum_dict[key] = [TASK_SPEC_EXT_PATTERN.sub("", path.name)]
+        accum_dict[key] = [PROCEDURE_EXT_PATTERN.sub("", path.name)]
 
     return accum_dict
 
 
-def deserialize_task_spec_file(task_spec_content: str) -> TaskSpec:
-    """Take the content of a Task Spec file, try to find the corresponding file,
-    return it as a TaskSpec object"""
+def deserialize_procedure_file(procedure_content: str) -> Procedure:
+    """Take the content of a Procedure file, try to find the corresponding file,
+    return it as a Procedure object"""
 
-    yml: Dict = yaml.load(task_spec_content)
+    yml: Dict = yaml.load(procedure_content)
 
     raw_steps = yml.pop("steps")
     raw_context = yml.pop("context", None)
@@ -109,10 +109,10 @@ def deserialize_task_spec_file(task_spec_content: str) -> TaskSpec:
     parsed_steps: List[Step] = steps_from_yaml_block(raw_steps)
     parsed_context: List[ContextItem] = context_items_from_yaml_list(raw_context)
 
-    return TaskSpec(steps=parsed_steps, context=parsed_context, **yml)
+    return Procedure(steps=parsed_steps, context=parsed_context, **yml)
 
 
-def task_spec_file_metadata(file_location: Path) -> Dict:
+def procedure_file_metadata(file_location: Path) -> Dict:
     """ A dict of:
         full_path
         last_modified
@@ -128,17 +128,17 @@ def task_spec_file_metadata(file_location: Path) -> Dict:
     }
 
 
-def task_spec_object_metadata(task_spec: TaskSpec) -> Dict:
+def procedure_object_metadata(procedure: Procedure) -> Dict:
     """A dict of:
         title
         step_count
         context_vars"""
 
     return {
-        "title": task_spec.title,
-        "description": task_spec.description,
-        "step_count": len(task_spec.steps),
-        "context_vars": [c.var_name for c in task_spec.context]
-        if task_spec.context is not None
+        "title": procedure.title,
+        "description": procedure.description,
+        "step_count": len(procedure.steps),
+        "context_vars": [c.var_name for c in procedure.context]
+        if procedure.context is not None
         else glot["no_context_to_display_placeholder"],
     }

@@ -77,6 +77,6 @@ class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
         ],
     )
     def test_include_options(self, from_dir, expected, patched_dirs):
-        task_spec_names_by_dir = _collect_fancy_list_input(from_dir)
+        procedure_names_by_dir = _collect_fancy_list_input(from_dir)
 
-        assert task_spec_names_by_dir == expected
+        assert procedure_names_by_dir == expected

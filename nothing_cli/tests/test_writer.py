@@ -4,8 +4,8 @@
 """Tests for not.writer"""
 import pytest
 
-from ..constants import FIELD_NAMES_EXCLUDED_FROM_CLEANED_TASK_SPEC
-from ..models import Step, TaskSpecCreate
+from ..constants import FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE
+from ..models import Step, ProcedureCreate
 from ..writer import clean
 
 
@@ -13,36 +13,36 @@ class TestClean:
     """Test suite for not.writer.clean"""
 
     @pytest.fixture
-    def minimal_task_spec(self):
-        steps_for_task = [
+    def minimal_procedure(self):
+        steps_for_procedure = [
             Step(prompt=prompt, number=i)
             for i, prompt in enumerate(["Get ready!", "Do the thing."])
         ]
 
-        yield TaskSpecCreate(
+        yield ProcedureCreate(
             filename="do-the-thing.yml",
             title="Do The Thing",
             description="How to do the thing",
-            steps=steps_for_task,
+            steps=steps_for_procedure,
         )
 
     @pytest.fixture
-    def cleaned_minimal_task_spec(self, minimal_task_spec):
-        yield clean(minimal_task_spec)
+    def cleaned_minimal_procedure(self, minimal_procedure):
+        yield clean(minimal_procedure)
 
-    def test_unset_fields_are_not_returned(self, cleaned_minimal_task_spec):
-        assert set(cleaned_minimal_task_spec) == {
+    def test_unset_fields_are_not_returned(self, cleaned_minimal_procedure):
+        assert set(cleaned_minimal_procedure) == {
             "title",
             "steps",
             "context",
             "description",
         }, (
             "The only keys on the dict returned are the ones "
-            "explicitly set on the input TaskSpec"
+            "explicitly set on the input Procedure"
         )
 
-    def test_excluded_fields_are_not_returned(self, cleaned_minimal_task_spec):
+    def test_excluded_fields_are_not_returned(self, cleaned_minimal_procedure):
         assert (
-            set(cleaned_minimal_task_spec) & FIELD_NAMES_EXCLUDED_FROM_CLEANED_TASK_SPEC
+            set(cleaned_minimal_procedure) & FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE
             == set()
         ), "No excluded field names make it into he cleaned dict"

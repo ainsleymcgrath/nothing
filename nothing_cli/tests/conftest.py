@@ -8,7 +8,7 @@ import pytest
 
 
 @pytest.fixture(scope="module")
-def super_minimal_task_spec_file_content():
+def super_minimal_procedure_file_content():
     """The bare minimum spec: just a title and newline-delimited steps"""
 
     yield """---
@@ -23,8 +23,8 @@ def super_minimal_task_spec_file_content():
 
 
 @pytest.fixture(scope="module")
-def task_spec_with_context_as_simple_list():
-    """A task spec that uses basic-style context"""
+def procedure_with_context_as_simple_list():
+    """A Procedure that uses basic-style context"""
 
     yield """---
     title: A sample set of do-nothing instructions
@@ -40,8 +40,8 @@ def task_spec_with_context_as_simple_list():
 
 
 @pytest.fixture(scope="module")
-def task_spec_with_context_as_list_of_mappings():
-    """A task spec that uses mapping-style context"""
+def procedure_with_context_as_list_of_mappings():
+    """A Procedure that uses mapping-style context"""
 
     yield """---
     title: Preflight Checks
@@ -63,23 +63,23 @@ def task_spec_with_context_as_list_of_mappings():
 
 
 @pytest.fixture(scope="module")
-def task_spec_with_config_options():
-    """A task spec that will override default configuration"""
+def procedure_with_config_options():
+    """A Procedure that will override default configuration"""
 
 
 @pytest.fixture(scope="module")
-def task_spec_with_presets():
-    """A task spec that utilizes presets"""
+def procedure_with_presets():
+    """A Procedure that utilizes presets"""
 
 
 @pytest.fixture(scope="module")
-def task_spec_using_expressions():
-    """A task spec that uses Python expressions inside a template"""
+def procedure_using_expressions():
+    """A Procedure that uses Python expressions inside a template"""
 
 
 @pytest.fixture(scope="module")
-def task_spec_with_everything():
-    """A task spec with a value for every optional key"""
+def procedure_with_everything():
+    """A Procedure with a value for every optional key"""
 
 
 def pytest_assertrepr_compare(op, left, right):

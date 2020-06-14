@@ -18,9 +18,9 @@ class TestContextItemsFromYAMLList:
 
     @pytest.fixture(scope="class")
     def context_objects_from_simple_context_list(
-        self, task_spec_with_context_as_simple_list
+        self, procedure_with_context_as_simple_list
     ):
-        yml: Dict = yaml.load(task_spec_with_context_as_simple_list)
+        yml: Dict = yaml.load(procedure_with_context_as_simple_list)
 
         yield context_items_from_yaml_list(yml["context"])
 
@@ -39,9 +39,9 @@ class TestContextItemsFromYAMLList:
 
     @pytest.fixture(scope="class")
     def context_objects_from_complex_context_list(
-        self, task_spec_with_context_as_list_of_mappings
+        self, procedure_with_context_as_list_of_mappings
     ):
-        yml: Dict = yaml.load(task_spec_with_context_as_list_of_mappings)
+        yml: Dict = yaml.load(procedure_with_context_as_list_of_mappings)
 
         yield context_items_from_yaml_list(yml["context"])
 
@@ -69,9 +69,9 @@ class TestStepsFromYAMLBlock:
 
     @pytest.fixture(scope="class")
     def step_objects_from_simplest_step_block(
-        self, super_minimal_task_spec_file_content
+        self, super_minimal_procedure_file_content
     ):
-        yml: Dict = yaml.load(super_minimal_task_spec_file_content)
+        yml: Dict = yaml.load(super_minimal_procedure_file_content)
 
         yield steps_from_yaml_block(yml["steps"])
 
