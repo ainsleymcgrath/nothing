@@ -102,9 +102,10 @@ class ProcedureCreateExpert(Procedure):
 
     filename: str
     title = config.default_title
-    steps: List[Step] = steps_from_yaml_block(config.default_steps_expert)
+    steps: List[Step] = steps_from_yaml_block(config.default_steps)
     context: List[ContextItem] = context_items_from_yaml_list(
         config.default_context_list
     )
+    # XXX presets not implemented
     presets: List[Dict] = config.default_presets
-    config: Dict = ProcedureConfig()
+    config: Dict = ProcedureConfig().dict()

@@ -5,8 +5,13 @@ from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from .constants import FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE, STEP_SEPARATOR
-from .models import Procedure
+from .constants import (
+    FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE,
+    HOME_DOT_NOTHING_DIR,
+    STEP_SEPARATOR,
+)
+from .localization import polyglot as glot
+from .models import context_items_from_yaml_list, Procedure, steps_from_yaml_block
 
 
 yaml = YAML()
@@ -52,3 +57,19 @@ def clean(procedure: Procedure) -> Dict:
         **steps_as_literal_scalar_string,
         **context_as_list_of_mappings,
     }
+
+
+def write_easter():
+    """Write the cutesy easter egg Procedure"""
+
+    easter_procedure = Procedure(
+        filename="nothing.yml",
+        title=glot["easter_title"],
+        description=glot["easter_description"],
+        steps=steps_from_yaml_block(glot["easter_steps"]),
+        context=context_items_from_yaml_list(
+            {glot["easter_context_var_name"]: glot["easter_context_var_prompt"]}
+        ),
+    )
+
+    write(easter_procedure, HOME_DOT_NOTHING_DIR)

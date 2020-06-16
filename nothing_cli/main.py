@@ -6,35 +6,58 @@ from pathlib import Path
 import typer
 
 from . import writer
-from .config import GlobalConfig
+from .config import GlobalConfig, write_global_config_to_file
 from .constants import (
+    CONFIG_FILE_NAME,
     CWD_DOT_NOTHING_DIR,
     DirectoryChoicesForListCommand,
     HOME_DOT_NOTHING_DIR,
     ValidExtensions,
 )
-from .filesystem import deserialize_procedure_file
+from .filesystem import deserialize_procedure_file, procedure_location
 from .localization import polyglot as glot
 from .models import Procedure, ProcedureCreate, ProcedureCreateExpert
 from .theatrics import (
     ask,
     confirm_drop,
     confirm_overwrite,
-    show_dossier,
     interactive_walkthrough,
     warn_missing_file,
     prompt_for_copy_args,
     prompt_for_new_args,
+    config_exists_warn,
+    show_dossier,
     show_fancy_list,
-    # show_procedure_overview,
     success,
 )
-
-from .filesystem import procedure_location
 
 
 app = typer.Typer(help=glot["help"])
 config = GlobalConfig()
+
+
+@app.command(help=glot["init_help"])
+def init():
+    """Command to initialize the application"""
+
+    if CWD_DOT_NOTHING_DIR.exists():
+        config_exists_warn(glot["cwd_dot_nothing_exists_warn"])
+    else:
+        CWD_DOT_NOTHING_DIR.mkdir()
+        success(glot["made_cwd_dot_nothing_dir"])
+
+    if HOME_DOT_NOTHING_DIR.exists():
+        config_exists_warn(glot["home_dot_nothing_exists_warn"])
+    else:
+        HOME_DOT_NOTHING_DIR.mkdir()
+        success(glot["made_home_dot_nothing_dir"])
+        writer.write_easter()
+
+    if (HOME_DOT_NOTHING_DIR / CONFIG_FILE_NAME).exists():
+        config_exists_warn(glot["config_exists_warn"])
+    else:
+        write_global_config_to_file()
+        success(glot["wrote_config"])
 
 
 @app.command()
@@ -125,17 +148,17 @@ def new(
         ) = prompt_for_new_args(**defaults)
 
     procedure_filename = f"{procedure_name}.{extension}"
-    procedure: Procedure = (
-        ProcedureCreate(filename=procedure_filename)
-        if empty
-        else ProcedureCreateExpert(
+    if empty:
+        procedure = (
+            ProcedureCreateExpert(filename=procedure_filename)
+            if expert
+            else ProcedureCreate(filename=procedure_filename)
+        )
+
+    else:
+        procedure = ProcedureCreate(
             title=title, description=description, filename=procedure_filename
         )
-        if expert
-        else ProcedureCreate(
-            title=title, description=description, filename=procedure_filename
-        )
-    )
 
     try:
         writer.write(procedure, destination_dir.expanduser(), force=overwrite)

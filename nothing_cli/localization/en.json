@@ -1,17 +1,21 @@
 {
-  "title_prefix": "Beginning procedure",
   "step_prefix": "Step",
   "context_prompt": "Please provide a value for {}",
   "completion_message": "All done!",
 
   "default_title": "< give this procedure a title >",
   "default_description": "< describe this procedure >",
-  "default_context_name_name": "name",
-  "default_context_name_prompt": "What's your name?",
+  "default_context_name_name": "variable",
+  "default_context_name_prompt": "Type anything anything here",
   "default_presets_name": "apology",
   "default_presets_response": "I know hat was cheesy, {name}. But it's true!",
-  "default_steps": "Take 3 deep breaths, {name}.\n\nFind a comfortable position in your seat.\n\nBegin to breathe lightly and slowly, as if you're going to sleep.\n\nClose your eyes and count 10 of your gentle breaths.",
-  "default_steps_expert": "Take 3 deep breaths, {name}.\n\nBe still for a moment\n\nRecall that you are irreplaceable.\n\n{apology}",
+  "default_steps": "This is step one.\nIt has 2 lines and a variable set to '{variable}' in it.\n\nThis is step two.\n\nReplace these steps with as many steps of your own as you'd like.",
+
+  "easter_steps":"Take 3 deep breaths, {name}.\n\nFind a comfortable position in your seat.\n\nBegin to breathe lightly and slowly, as if you're going to sleep.\n\nClose your eyes and count 10 of your gentle breaths.",
+  "easter_title":"Do Nothing",
+  "easter_description": "Literally do not do anything",
+  "easter_context_var_name": "name",
+  "easter_context_var_prompt": "What's your name?",
 
   "cwd": "cwd",
   "home": "home",
@@ -23,6 +27,15 @@
   "file_edited": "Edited {name}",
   "copied": "Copy of {name} written to {destination}",
   "dropped": "'{name}' permanetly deleted from:\n    {location} ☠️",
+  "config_exists_warn": "~/._config.yaml already exists.",
+  "home_dot_nothing_exists_warn": "There is already a .nothing dir in your home",
+  "cwd_dot_nothing_exists_warn": "There is already a .nothing dir in your cwd",
+  "made_cwd_dot_nothing_dir": "Created ./.nothing/",
+  "made_home_dot_nothing_dir": "Created ~/.nothing",
+  "wrote_config": "Wrote ~/.nothing/_config.yaml",
+  "delete_suggestion":"    For a clean start, delete and run this command again.",
+
+  "init_help":"Create ~/.nothing and ./.nothing if they don't exist. Write ~/.nothing/_config.yaml if it doesn't exist.",
 
   "nag": "Press enter to continue...",
 

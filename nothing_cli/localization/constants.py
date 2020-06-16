@@ -17,7 +17,6 @@ STRINGS_SUPPORTED = {
     "default_presets_name",
     "default_presets_response",
     "default_steps",
-    "default_steps_expert",
     "default_title",
     "edit_destination_prompt",
     "edit_extension_prompt",
@@ -39,5 +38,4 @@ STRINGS_SUPPORTED = {
     "overwrite_warn",
     "step_prefix",
     "stylish_interjection",
-    "title_prefix",
 }

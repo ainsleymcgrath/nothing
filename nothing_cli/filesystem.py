@@ -9,6 +9,7 @@ from typing_extensions import Literal
 from ruamel.yaml import YAML
 
 from .constants import (
+    CONFIG_FILE_NAME,
     CWD,
     CWD_DOT_NOTHING_DIR,
     HOME,
@@ -84,7 +85,7 @@ def procedure_names_by_parent_dir_name(
     accum_dict = {}
 
     for path in paths:
-        if not path.is_file():
+        if not path.is_file() or path.name == CONFIG_FILE_NAME:
             continue
 
         key = friendly_prefix_for_path(path.parent)

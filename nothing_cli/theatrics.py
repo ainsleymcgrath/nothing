@@ -243,6 +243,15 @@ def ask(question, **prompt_kwargs) -> Any:
     return answer
 
 
+def config_exists_warn(warning):
+    """Inform user that the file exists.
+    Suggest they delete it if they want a new one"""
+
+    message = typer.style(warning, fg=typer.colors.YELLOW)
+    typer.echo("⚠️  " + message)
+    typer.echo(glot["delete_suggestion"])
+
+
 # TODO: raise typer.Abort() when called
 def warn_missing_file(name):
     """A generic warning when a Procedure with the specified name does not exist"""
