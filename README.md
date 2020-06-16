@@ -23,7 +23,13 @@ The command for interacting with the tool is `not`. Get the overview of its subc
 not --help
 ```
 
-Your installation should come with a sample Procedure, aptly named `nothing`. Get an overview of what it does and where it lives with the `describe` subcommand:
+Get up and going by running:
+
+```python
+not init
+```
+
+You should now have a sample Procedure available, aptly named `nothing`. Get an overview of what it does and where it lives with the `describe` subcommand:
 
 ```shell
 not describe nothing
@@ -193,7 +199,7 @@ In an ideal world, users could specify context as usual:
 ---
 # diet-review.yml
 context:
-  - favorite_food: What's your favorite thing to do?
+  - favorite_food: What's your favorite thing to eat?
 ```
 
 But then circumvent the prompt by running the Procedure like this:
