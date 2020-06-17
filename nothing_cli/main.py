@@ -197,7 +197,7 @@ def copy(
     new_procedure_name=typer.Argument(None),
     new_title: str = None,
     destination_dir: Path = None,
-    new_extension: str = None,
+    new_extension: ValidExtensions = None,
     edit_after_write: bool = False,
 ):
     """Copy an old Procedure to a new one with the provided name"""
@@ -216,7 +216,7 @@ def copy(
         defaults = {
             "default_title": old_procedure.title,
             "default_destination": original_file.parent,  # TODO use friendly prefix
-            "default_extension": extension_without_dot,  # TODO enum for extensions
+            "default_extension": extension_without_dot,
             "edit_after_write": edit_after_write,
         }
 
