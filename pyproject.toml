@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "nothing-cli"
-version = "0.0.4"
+version = "0.0.post4"
 description = "Nothing helps coder be more smarter & less dumber."
 authors = ["Ainsley McGrath <mcgrath.ainsley@gmail.com>"]
 readme = "README.md"
