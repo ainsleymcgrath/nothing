@@ -8,10 +8,10 @@ Take hold of the key 🔑 to gradual automation.
 
 `nothing-cli` is very young, only an infant. 🐣
 
-If you'd like to give it a try, it's available ion PyPi test.
+If you'd like to give it a try, it's available in alpha on PyPi.
 
 ```shell
-pip install --index-url https://test.pypi.org/legacy/ nothing-cli
+pip install nothing-cli
 ```
 
 In part due to its youth, only Python 3.7 and above are supported. 😬
