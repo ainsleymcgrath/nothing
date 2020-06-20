@@ -11,7 +11,7 @@ import pytest
 def super_minimal_procedure_file_content():
     """The bare minimum spec: just a title and newline-delimited steps"""
 
-    yield """---
+    return """---
     title: Set yourself up to be the automation whiz
     steps: |-
         Download Nothing by running this:
@@ -26,7 +26,7 @@ def super_minimal_procedure_file_content():
 def procedure_with_context_as_simple_list():
     """A Procedure that uses basic-style context"""
 
-    yield """---
+    return """---
     title: A sample set of do-nothing instructions
     context:
       - current_user_name
@@ -43,7 +43,7 @@ def procedure_with_context_as_simple_list():
 def procedure_with_context_as_list_of_mappings():
     """A Procedure that uses mapping-style context"""
 
-    yield """---
+    return """---
     title: Preflight Checks
     context:
       - name: What's your name?
@@ -63,6 +63,17 @@ def procedure_with_context_as_list_of_mappings():
 
 
 @pytest.fixture(scope="module")
+def mixed_context():
+    """Some Procedure context using both styles"""
+
+    return """---
+    context:
+      - deploy_phase
+      - raygun_version: What model of raygun do you have?
+    """
+
+
+@pytest.fixture(scope="module")
 def procedure_with_config_options():
     """A Procedure that will override default configuration"""
 
@@ -70,11 +81,6 @@ def procedure_with_config_options():
 @pytest.fixture(scope="module")
 def procedure_with_presets():
     """A Procedure that utilizes presets"""
-
-
-@pytest.fixture(scope="module")
-def procedure_using_expressions():
-    """A Procedure that uses Python expressions inside a template"""
 
 
 @pytest.fixture(scope="module")

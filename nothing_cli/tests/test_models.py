@@ -55,8 +55,12 @@ class TestContextItemsFromYAMLList:
             c.is_complex for c in context_objects_from_complex_context_list
         ), "All generated ContextItem objects are complex when parsing complex context"
 
-    def test_mixed_context(self):
-        assert 0
+    def test_mixed_context(self, mixed_context):
+        raw_context_list = yaml.load(mixed_context)["context"]
+        context_list = context_items_from_yaml_list(raw_context_list)
+
+        assert not context_list[0].is_complex
+        assert context_list[1].is_complex
 
     def tes_no_context(self):
         assert (
@@ -84,11 +88,10 @@ class TestStepsFromYAMLBlock:
             "\n" in step.prompt for step in step_objects_from_simplest_step_block
         ), "Newlines are preserved in serialized steps"
 
-    def test_steps_with_template_values_from_context(self):
-        assert 0
-
+    @pytest.mark.xfail(reason="Presets not yet implemented :weary:")
     def test_steps_with_template_values_from_presets(self):
         assert 0
 
+    @pytest.mark.xfail(reason="Need further discussion on what 'malformed' entails")
     def test_malformed_steps(self):
         assert 0
