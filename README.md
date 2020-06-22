@@ -260,14 +260,14 @@ We're getting absolutely crazy here, but adding *several* features could allow f
 ---
 # ci-stuff.yml
 title: CI/CD Toil
-description: Boring CI thing, one day you'll automate. But now now.
+description: Boring CI thing, one day you'll automate. But not now.
 context:
   # add syntax for limited choice context
   - deploy_phase[dev/prod]: What kind of deploy are you doing?
 chain:
    # use context to determine where chain
   - if:
-      deploy_phase_is: dev  # name mangling 😵
+      deploy_phase_is: dev
       to: dev-deploy
   - if:
       deploy_phase_is: prod
