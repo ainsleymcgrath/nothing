@@ -45,7 +45,7 @@ class _Polyglot(Dict[str, str]):
             / self.language_mappings[self.locale].filename
         )
 
-        with open(locale_file, "r") as file:
+        with open(locale_file, "rb") as file:
             contents: Dict[str, str] = load(file)
             super(_Polyglot, self).__init__(contents)
 
