@@ -6,15 +6,13 @@ from pathlib import Path
 import typer
 
 from . import writer
-from .config import GlobalConfig, write_global_config_to_file
 from .constants import (
-    CONFIG_FILE_NAME,
     CWD_DOT_NOTHING_DIR,
     DirectoryChoicesForListCommand,
     HOME_DOT_NOTHING_DIR,
     ValidExtensions,
 )
-from .filesystem import deserialize_procedure_file, procedure_location
+from .filesystem import deserialize_procedure_file, path_to_write_to, procedure_location
 from .localization import polyglot as glot
 from .models import Procedure, ProcedureCreate, ProcedureCreateExpert
 from .theatrics import (
@@ -33,12 +31,11 @@ from .theatrics import (
 
 
 app = typer.Typer(help=glot["help"])
-config = GlobalConfig()
 
 
 @app.command(help=glot["init_help"])
 def init():
-    """Command to initialize the application"""
+    """Command to create a .nothing directory locally"""
 
     if CWD_DOT_NOTHING_DIR.exists():
         config_exists_warn(glot["cwd_dot_nothing_exists_warn"])
@@ -46,18 +43,14 @@ def init():
         CWD_DOT_NOTHING_DIR.mkdir()
         success(glot["made_cwd_dot_nothing_dir"])
 
-    if HOME_DOT_NOTHING_DIR.exists():
-        config_exists_warn(glot["home_dot_nothing_exists_warn"])
-    else:
-        HOME_DOT_NOTHING_DIR.mkdir()
-        success(glot["made_home_dot_nothing_dir"])
-        writer.write_easter()
 
-    if (HOME_DOT_NOTHING_DIR / CONFIG_FILE_NAME).exists():
-        config_exists_warn(glot["config_exists_warn"])
-    else:
-        write_global_config_to_file()
-        success(glot["wrote_config"])
+@app.command(help=glot["sample_help"])
+def sample(global_: bool = False):
+    """Write a cutesy sample Procedure."""
+
+    destination = path_to_write_to(global_)
+    writer.write_easter(destination)
+    success(glot.localized("made_sample_procedure", {"directory": destination}))
 
 
 @app.command()
@@ -100,8 +93,8 @@ def new(
         help=glot["new_extension_option_help"],
         show_default=True,
     ),
-    local: bool = typer.Option(
-        False, "--local", "-L", help=glot["new_local_option_help"]
+    global_: bool = typer.Option(
+        False, "--global", "-G", help=glot["new_global_option_help"]
     ),
     empty: bool = typer.Option(
         False,
@@ -114,10 +107,7 @@ def new(
         False, "--expert", "-T", help=glot["new_expert_option_help"]
     ),
     edit_after: bool = typer.Option(
-        config.edit_after_write,
-        "--edit-after",
-        "-A",
-        help=glot["new_edit_after_option_help"],
+        True, "--edit-after", "-A", help=glot["new_edit_after_option_help"]
     ),
     overwrite: bool = typer.Option(
         False, "--overwrite", "-O", help=glot["new_overwrite_option_help"]
@@ -125,7 +115,7 @@ def new(
 ):
     """Subcommand for creating new Procedures"""
 
-    destination_dir = HOME_DOT_NOTHING_DIR if not local else CWD_DOT_NOTHING_DIR
+    destination_dir = HOME_DOT_NOTHING_DIR if not global_ else CWD_DOT_NOTHING_DIR
 
     # keep ur eye on the ball, there be mutants here
     if not empty:

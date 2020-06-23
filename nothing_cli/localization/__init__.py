@@ -56,6 +56,7 @@ class _Polyglot(Dict[str, str]):
         # Pylint believes this isnt a dict because it doesnt _quite_ speak mypy.
         return self.__getitem__(key).format(**context)  # pylint: disable=E1101
 
+    # TODO run this somewhere lol :scream_cat:
     def test(self) -> None:
         """Test if the locfile is complete."""
 
@@ -66,8 +67,8 @@ class _Polyglot(Dict[str, str]):
         ]
         superfluous_entries = [
             entry
-            for entry in self
-            if entry not in STRINGS_SUPPORTED  # pylint: disable=E1133
+            for entry in self  # pylint: disable=E1133
+            if entry not in STRINGS_SUPPORTED
         ]
 
         if missing_entries:

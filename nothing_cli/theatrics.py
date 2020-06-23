@@ -6,7 +6,6 @@ from typing import Any, Dict, Iterator, List, Tuple
 from slugify import slugify
 import typer
 
-from .config import GlobalConfig
 from .constants import (
     CWD_DOT_NOTHING_DIR,
     HOME_DOT_NOTHING_DIR,
@@ -22,9 +21,6 @@ from .filesystem import (
     procedure_object_metadata,
 )
 from .models import Step, Procedure
-
-
-config = GlobalConfig()
 
 
 def marquis(title, description):
@@ -65,12 +61,12 @@ def interactive_walkthrough(procedure: Procedure) -> None:
     for step in procedure.steps:
         run_step(step, context_dict)
 
-    typer.echo(config.completion_message)
+    typer.echo(glot["completion_message"])
 
 
 def run_step(step: Step, context: Dict):
     """Run just one Step in a Procedure"""
-    typer.echo(f"{config.step_prefix} {step.number}:")
+    typer.echo(f"{glot['step_prefix']} {step.number}:")
 
     try:
         typer.echo(step.prompt.format(**context) + "\n")

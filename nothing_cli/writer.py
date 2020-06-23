@@ -5,11 +5,7 @@ from pathlib import Path
 from ruamel.yaml import YAML
 from ruamel.yaml.scalarstring import LiteralScalarString
 
-from .constants import (
-    FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE,
-    HOME_DOT_NOTHING_DIR,
-    STEP_SEPARATOR,
-)
+from .constants import FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE, STEP_SEPARATOR
 from .localization import polyglot as glot
 from .models import context_items_from_yaml_list, Procedure, steps_from_yaml_block
 
@@ -59,7 +55,7 @@ def clean(procedure: Procedure) -> Dict:
     }
 
 
-def write_easter():
+def write_easter(destination):
     """Write the cutesy easter egg Procedure"""
 
     easter_procedure = Procedure(
@@ -72,4 +68,4 @@ def write_easter():
         ),
     )
 
-    write(easter_procedure, HOME_DOT_NOTHING_DIR)
+    write(easter_procedure, destination, force=True)
