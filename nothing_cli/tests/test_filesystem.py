@@ -179,24 +179,26 @@ class TestFriendlyPrefixForPath:
         assert friendly_prefix_for_path(file_in_cwd) == "./stories.txt"
 
 
-class TestSerializeProcedure:
+class TestDeserializeProcedure:
     """Test suite for filesystem.deserialize_procedure_file"""
 
-    def test_serialize_minimal(self, super_minimal_procedure_file_content):
+    def test_deserialize_minimal(self, super_minimal_procedure_file_content):
         procedure = deserialize_procedure_file(super_minimal_procedure_file_content)
-        keys_with_values_in_spec = [
-            key for key, value in procedure.dict().items() if value is not None
-        ]
+        keys_with_values_in_spec = procedure.dict(
+            exclude_unset=True, exclude_defaults=True
+        ).keys()
 
         assert len(procedure.steps) == 2, "Every newline-delimited step is counted"
         assert sorted(keys_with_values_in_spec) == ["steps", "title"]
 
-    def test_serialize_with_simple_context(self, procedure_with_context_as_simple_list):
+    def test_deserialize_with_simple_context(
+        self, procedure_with_context_as_simple_list
+    ):
         procedure = deserialize_procedure_file(procedure_with_context_as_simple_list)
 
         assert len(procedure.context) == 2
 
-    def test_serialize_with_complex_context(
+    def test_deserialize_with_complex_context(
         self, procedure_with_context_as_list_of_mappings
     ):
         procedure = deserialize_procedure_file(
