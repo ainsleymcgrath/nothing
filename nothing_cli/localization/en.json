@@ -32,7 +32,6 @@
   "cwd_dot_nothing_exists_warn": "There is already a .nothing dir in your cwd",
   "made_cwd_dot_nothing_dir": "Created ./.nothing/",
   "made_sample_procedure": "Created a sample Procdure called 'nothing' for you in {directory} 💖",
-  "wrote_config": "Wrote ~/.nothing/_config.yaml",
   "delete_suggestion":"    For a clean start, delete and run this command again.",
 
   "init_help":"Create ./.nothing if it doesn't exist.",

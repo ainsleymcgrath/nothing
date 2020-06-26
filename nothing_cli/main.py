@@ -103,7 +103,7 @@ def new(
         callback=empty_callback,
         help=glot["new_empty_option_help"],
     ),
-    expert: bool = typer.Option(
+    expert: bool = typer.Option(  # TODO deprecate
         False, "--expert", "-T", help=glot["new_expert_option_help"]
     ),
     edit_after: bool = typer.Option(
@@ -115,7 +115,7 @@ def new(
 ):
     """Subcommand for creating new Procedures"""
 
-    destination_dir = HOME_DOT_NOTHING_DIR if not global_ else CWD_DOT_NOTHING_DIR
+    destination_dir = HOME_DOT_NOTHING_DIR if global_ else CWD_DOT_NOTHING_DIR
 
     # keep ur eye on the ball, there be mutants here
     if not empty:

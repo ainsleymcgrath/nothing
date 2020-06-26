@@ -93,6 +93,7 @@ class ProcedureCreate(Procedure):
     )
 
 
+# TODO deprecate
 class ProcedureCreateExpert(Procedure):
     """Serializeable to a Procedure file with all optional keys exposed"""
 
