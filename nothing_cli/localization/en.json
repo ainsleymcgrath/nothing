@@ -31,11 +31,11 @@
   "home_dot_nothing_exists_warn": "There is already a .nothing dir in your home",
   "cwd_dot_nothing_exists_warn": "There is already a .nothing dir in your cwd",
   "made_cwd_dot_nothing_dir": "Created ./.nothing/",
-  "made_home_dot_nothing_dir": "Created ~/.nothing",
-  "wrote_config": "Wrote ~/.nothing/_config.yaml",
+  "made_sample_procedure": "Created a sample Procdure called 'nothing' for you in {directory} 💖",
   "delete_suggestion":"    For a clean start, delete and run this command again.",
 
-  "init_help":"Create ~/.nothing and ./.nothing if they don't exist. Write ~/.nothing/_config.yaml if it doesn't exist.",
+  "init_help":"Create ./.nothing if it doesn't exist.",
+  "sample_help": "Create a sample Procedure called 'nothing' in ./.nothing if it exists, otherwise in ~/.nothing",
 
   "nag": "Press enter to continue...",
 
@@ -50,7 +50,7 @@
   "new_help": "Create a new Procedure. Interactive when called without arguments (recommended).",
   "new_procedure_name_option_help": "The name of the Procedure you're making. No extension, just the name.",
   "new_extension_option_help": "The extension to apply to the generated file",
-  "new_local_option_help":"Create the new file in ./.nothing as opposed to the default ~/.nothing",
+  "new_global_option_help":"Create the new file in ~/.nothing even if ./.nothing exists.",
   "new_empty_option_help":"Create the Procedure without prompting for values instead using default placeholders. Must be called with --name",
   "new_expert_option_help":"Generate the Procedure file with all configuration options exposed, or don't",
   "new_edit_after_option_help":"Open $EDITOR after the command completes",

@@ -9,7 +9,6 @@ from typing_extensions import Literal
 from ruamel.yaml import YAML
 
 from .constants import (
-    CONFIG_FILE_NAME,
     CWD,
     CWD_DOT_NOTHING_DIR,
     HOME,
@@ -85,7 +84,7 @@ def procedure_names_by_parent_dir_name(
     accum_dict = {}
 
     for path in paths:
-        if not path.is_file() or path.name == CONFIG_FILE_NAME:
+        if not path.is_file():
             continue
 
         key = friendly_prefix_for_path(path.parent)
@@ -143,3 +142,17 @@ def procedure_object_metadata(procedure: Procedure) -> Dict:
         if procedure.context is not None
         else glot["no_context_to_display_placeholder"],
     }
+
+
+def path_to_write_to(global_: bool) -> Path:
+    """Returns the path that a new Procedure file ought to be written to based on the
+    presence of a .nothing directory in home cwd.
+
+    SIDE EFFECT: Will create ~/.nothing if it does not exist
+    and there is no ./.nothing"""
+
+    if global_ or not CWD_DOT_NOTHING_DIR.exists():
+        HOME_DOT_NOTHING_DIR.mkdir(exist_ok=True)
+        return HOME_DOT_NOTHING_DIR
+
+    return CWD_DOT_NOTHING_DIR

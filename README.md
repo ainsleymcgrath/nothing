@@ -23,10 +23,10 @@ The command for interacting with the tool is `not`. Get the overview of its subc
 not --help
 ```
 
-Get up and going by running:
+Get a quick first taste by running:
 
 ```python
-not init
+not sample
 ```
 
 You should now have a sample Procedure available, aptly named `nothing`. Get an overview of what it does and where it lives with the `describe` subcommand:

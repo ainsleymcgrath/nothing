@@ -74,11 +74,6 @@ def mixed_context():
 
 
 @pytest.fixture(scope="module")
-def procedure_with_config_options():
-    """A Procedure that will override default configuration"""
-
-
-@pytest.fixture(scope="module")
 def procedure_with_presets():
     """A Procedure that utilizes presets"""
 
