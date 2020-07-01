@@ -4,6 +4,7 @@ Nothing helps coders be more smarter, some cooler, less dumber, and much faster.
 
 Take hold of the key 🔑 to gradual automation.
 
+
 ## Installation
 
 `nothing-cli` is very young, only an infant. 🐣
@@ -42,6 +43,49 @@ not do nothing
 ```
 
 You'll be walked through the Procedure for doing... nothing. Enjoy! Folks don't do enough nothing, in my opinion.
+
+## Overview
+
+### A Realistic Example
+
+The central concept of `nothing-cli` is the *Procedure*. A Procedure is simply a `yaml` file in a `.nothing` directory. We interact with them with the `not` command.
+
+Procedures are not quite todo lists, not quite instructions, and not quite forms. The idea is to use them for infrequent, "toilsome" tasks that are easy to get lost in, annoying to document, and hard ––but very enticing–– to automate.
+
+Here's a simple Procedure for a developer's personal checklist before starting work on a new feature branch:
+
+```yaml
+---
+title: Get started with a feature branch
+description: A few preflight checks before you start coding
+context:
+  - dev_goal: Briefly, what do you want to accomplish with this branch?
+  - __feature_branch_name: What name did you come up with for the new branch?
+knowns:
+  - main_branch: master
+steps: |-
+  Check out the main branch and get the latest changes:
+  git checkout {main_branch} && git pull
+
+  Think of a short, kebab-cased name that captures your goal:
+  "{dev_goal}"
+
+  Create the new branch:
+  git checkout -b {__feature_branch_name}
+
+  Push the new branch to the remote:
+  git push -u {__feature_branch_name}
+```
+
+If you copy and paste the above into a file called `preflight-checks.yml` and save it in a directory called `.nothing` (either in your home or working directory), then you can "do" the Procedure by calling:
+
+```shell
+not do preflight-checks
+```
+
+For those without a terminal handy, it'd look like this:
+
+[![asciicast](https://asciinema.org/a/cbLdJ1QCAhHzOuLsHWwZ4fr0e.svg)](https://asciinema.org/a/cbLdJ1QCAhHzOuLsHWwZ4fr0e)
 
 ## Inspo & Rationale
 
@@ -158,40 +202,9 @@ If you run them side-by-side, you'll see that the original uses hard-coded value
 
 ## Planned Features
 
-The alpha version of `nothing-cli` was meant to be as focused as possible. For this reason, some mechanics of the original do-nothing script were omitted. They will be implemented, however. **I very strongly welcome contributions from anyone who wants to help out with the growth of this tool. Please email me.**
+The alpha version of `nothing-cli` was meant to be as focused as possible. For this reason, some mechanics of the original do-nothing script were omitted.
 
-### Priority Features
-
-These features are high on the todo list.
-
-#### Lazy Context
-
-When using the original do-nothing script, the user is prompted in the middle of the run for a new context variable. In future versions of `nothing-cli`, this mechanic will be supported by "lazy context". The planned syntax is pretty straightforward.
-
-```yaml
-context:
-  - regular_context  # prompted at the beginning
-  - __lazy_context  # prompted before the first reference
-```
-
-Lazy context will still support simple and complex syntax.
-
-#### Presets
-
-In order to set variables that the user will not be prompted for, a `presets` key will be added:
-
-```yaml
-context:
-  - user_wil_be_prompted_for_this
-presets:
-  - this_is_hardcoded: This is the value
-```
-
-### Moonshot Features
-
-The implementation of these features has not been considered far beyond daydreams.
-
-#### Promptless Presets & Context
+#### Promptless Knowns & Context
 
 In an ideal world, users could specify context as usual:
 
@@ -208,16 +221,16 @@ But then circumvent the prompt by running the Procedure like this:
 not do diet-review --favorite-food 'french omelet'
 ```
 
-Even more useful would be specifying a this for presets:
+Even more useful would be specifying a this for knowns:
 
 ```yaml
 ---
 # secret-stuff.yml
-presets:
+knowns:
   - secret_password
 ```
 
-Specifying a preset with no value (as a plain yaml list item) would require the Procedure to be run with the value as a command-line option.
+Specifying a known with no value (as a plain yaml list item) would require the Procedure to be run with the value as a command-line option.
 
 ```shell
 not do secret-stuff # refuses to run
