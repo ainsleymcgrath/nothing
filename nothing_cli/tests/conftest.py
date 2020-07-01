@@ -77,6 +77,38 @@ def mixed_context():
 def procedure_with_presets():
     """A Procedure that utilizes presets"""
 
+    return """---
+    title: Run away
+    presets:
+      - what_to_grab: Everything you own
+    steps: |-
+        Freak out!!
+
+        Grab {what_to_grab}
+
+        Get out of here!
+        Run as fast as you can!!
+    """
+
+
+@pytest.fixture(scope="module")
+def procedure_with_lazy_context():
+    """A Procedure with a lazy context var"""
+
+    return """---
+    title: Get some sleep
+    context:
+      - __latest_bedtime: What time did you go to sleep last night?
+
+    steps: |-
+        Gather all your bedtime supplies
+
+        Last night you went to bed at {__latest_bedtime}...
+        You can do better tonight.
+
+        Go to sleep
+    """
+
 
 @pytest.fixture(scope="module")
 def procedure_with_everything():

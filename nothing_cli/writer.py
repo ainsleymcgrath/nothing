@@ -30,12 +30,6 @@ def clean(procedure: Procedure) -> Dict:
     """Strip unnecessary fields and serialize non-primitive ones to create
     a dict that a user would like to see in a Procedure file"""
 
-    unset_fields = (field for field, value in procedure.dict().items() if value is None)
-    exclusions = (*FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE, *unset_fields)
-
-    procedure_sans_exclusions: Dict = {
-        k: v for k, v in procedure.dict().items() if k not in exclusions
-    }
     steps_as_literal_scalar_string: Dict = {
         "steps": LiteralScalarString(
             STEP_SEPARATOR.join(step.prompt for step in procedure.steps).rstrip()
@@ -49,7 +43,7 @@ def clean(procedure: Procedure) -> Dict:
     }
 
     return {
-        **procedure_sans_exclusions,
+        **procedure.dict(exclude=FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE),
         **steps_as_literal_scalar_string,
         **context_as_list_of_mappings,
     }

@@ -1,3 +1,5 @@
+# pylint: disable=too-few-public-methods
+
 """Pydantic models for Nothing constructs"""
 from typing import Dict, List, Union
 from pydantic import BaseModel
@@ -12,7 +14,6 @@ class Step(BaseModel):
     self.template vars is a list of the kwargs needed to format self.prompt"""
 
     prompt: str
-    template_vars: List = []  # TODO: get vars per step
     number: int
 
 
@@ -46,8 +47,8 @@ def context_items_from_yaml_list(
     """Takes a list extracted from yaml and
     returns it as a list of ContextItem objects"""
 
-    if raw_context is None:
-        return None
+    if raw_context is None or len(raw_context) == 0:
+        return []
 
     def _from_simple(context_item: str):
         """Interpolate the literal_var_name into the configured context prompt"""
@@ -73,30 +74,24 @@ class Procedure(BaseModel):
     Can be initialized without filename since it's mostly
     here for deserializating spec files"""
 
-    filename: str = None
+    filename: str = ""
     title: str
-    description: str = None
+    description: str = ""
     steps: List[Step]
-    context: List[ContextItem] = None
-    presets: List[Dict] = None
+    context: List[ContextItem] = []
+    presets: List[Dict] = []
 
 
 class ProcedureCreate(Procedure):
     """Serializeable to a basic Procedure file, the default for `not new`"""
 
     filename: str
-    title = glot["default_title"]
-    description = glot["default_description"]
+    title: str = glot["default_title"]
+    description: str = glot["default_description"]
     steps: List[Step] = steps_from_yaml_block(glot["default_steps"])
     context: List[ContextItem] = context_items_from_yaml_list(
         [{glot["default_context_name_name"]: glot["default_context_name_prompt"]}]
     )
-
-
-# TODO deprecate
-class ProcedureCreateExpert(Procedure):
-    """Serializeable to a Procedure file with all optional keys exposed"""
-
-    filename: str
-    # XXX presets not implemented
-    # presets: List[Dict]
+    presets: List[Dict] = [
+        {glot["default_presets_name"]: glot["default_presets_value"]}
+    ]

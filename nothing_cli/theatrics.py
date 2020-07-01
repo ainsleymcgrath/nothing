@@ -1,7 +1,9 @@
 """pretty printing utilities for not"""
+from itertools import chain
 from pathlib import Path
 from textwrap import indent
-from typing import Any, Dict, Iterator, List, Tuple
+from string import Formatter
+from typing import Any, Dict, Iterator, List, Set, Tuple
 
 from slugify import slugify
 import typer
@@ -10,6 +12,7 @@ from .constants import (
     CWD_DOT_NOTHING_DIR,
     HOME_DOT_NOTHING_DIR,
     DirectoryChoicesForListCommand,
+    LAZY_CONTEXT_PREFIX,
 )
 from .localization import polyglot as glot
 from .filesystem import (
@@ -20,7 +23,10 @@ from .filesystem import (
     procedure_names_by_parent_dir_name,
     procedure_object_metadata,
 )
-from .models import Step, Procedure
+from .models import ContextItem, Step, Procedure
+
+
+WARNING_STYLE = {"fg": typer.colors.YELLOW}
 
 
 def marquis(title, description):
@@ -35,14 +41,92 @@ def marquis(title, description):
 
     border_length = max(len(title), len(description)) + 8
     border = "~" * border_length
+    styled_title = typer.style(f" {title} ", bold=True, fg=typer.colors.MAGENTA)
 
     typer.echo(border)
     typer.echo()
-    typer.echo(f" {title} ")
+    typer.echo(styled_title)
     typer.echo(f"    '{description}' ")
     typer.echo()
     typer.echo(border)
     typer.echo()
+
+
+# pylint: disable=no-self-use
+class InterpolationStore:
+    """Eventually provides access to the value of each variable provided
+    in the `context` and `presets` fields of a Procedure.
+    In other words, it stores all the values needed to call .format() with
+    to display a step in the source procedure.
+
+    Any keyname beginning with a __ is 'lazy'. The user is prompted for that before
+    the first time it is referenced, then it's stored.
+    The user is prompted for values of keys with regular during __init__.
+    Values from `presets` are stored immediately."""
+
+    def __init__(self, procedure: Procedure):
+
+        self.procedure = procedure
+        self.store: Dict[str, str] = {}
+        self.requisite_names = set(
+            chain(
+                (p.keys()[0] for p in procedure.presets),
+                (c.var_name for c in procedure.context),
+            )
+        )
+
+        for preset in procedure.presets:
+            k, v = next(iter(preset.items()))
+            self.store[k] = v
+
+        eager_context_items = [
+            item
+            for item in procedure.context
+            if not item.var_name.startswith(LAZY_CONTEXT_PREFIX)
+        ]
+
+        for item in eager_context_items:
+            self.store[item.var_name] = self.prompt_for_value(item)
+
+    def prompt_for_value(self, item: ContextItem) -> str:
+        """Use ContextItem.prompt to get a value from the user.
+        Here for easier test patching, mostly."""
+
+        value = ask(item.prompt)
+
+        return value
+
+    def get_interpolations(self, step: Step) -> Dict:
+        """Returns the dictionary of kwargs the step needs for .format()"""
+
+        key_names = self.get_format_names(step.prompt)
+        if not key_names.issubset(self.requisite_names):
+            warning = typer.style(
+                glot.localized("undefined_variable_warn", {"step_number": step.number}),
+                **WARNING_STYLE,
+            )
+            typer.echo(warning)
+            raise typer.Abort()
+
+        for key in key_names:
+            if key not in self.store:
+                context: ContextItem = next(
+                    c for c in self.procedure.context if c.var_name == key
+                )
+                self.store[key] = self.prompt_for_value(context)
+
+        return {k: v for k, v in self.store.items() if k in key_names}
+
+    def get_format_names(self, text: str) -> Set[str]:
+        """Return the names of any variables mentioned in the templates of `text`"""
+
+        formatter = Formatter()
+
+        return set(
+            template_name
+            for _, template_name, _, _ in formatter.parse(text)
+            if template_name is not None
+        )
 
 
 def interactive_walkthrough(procedure: Procedure) -> None:
@@ -50,31 +134,44 @@ def interactive_walkthrough(procedure: Procedure) -> None:
 
     marquis(procedure.title, procedure.description)
 
-    context_dict = {}
-
-    if procedure.context:
-        for item in procedure.context:
-            context_value = typer.prompt(item.prompt)
-            context_dict[item.var_name] = context_value
+    store = InterpolationStore(procedure)
 
     typer.echo()
     for step in procedure.steps:
-        run_step(step, context_dict)
+        step_header = typer.style(
+            # XXX why do steps know their numbers? :thinking:
+            f"{glot['step_prefix']} {step.number}:",
+            bg=typer.colors.WHITE,
+            fg=typer.colors.BLACK,
+        )
+        typer.echo(step_header)
 
-    typer.echo(glot["completion_message"])
+        interpolations = store.get_interpolations(step)
+        step_body = styled_step(step.prompt.format(**interpolations))
+
+        typer.echo(step_body)
+
+        input(glot["nag"])
+        typer.echo()
+
+    finale = typer.style(glot["completion_message"], fg=typer.colors.GREEN, bold=True)
+    typer.echo(finale)
 
 
-def run_step(step: Step, context: Dict):
-    """Run just one Step in a Procedure"""
-    typer.echo(f"{glot['step_prefix']} {step.number}:")
+def styled_step(step_body: str) -> str:
+    """Bold the incoming text and color the last line if there are more than 1 lines"""
 
-    try:
-        typer.echo(step.prompt.format(**context) + "\n")
-    except KeyError:
-        typer.echo(step.prompt + "\n")
+    lines = step_body.split("\n")
+    regular_line_style = {"bold": True, "fg": typer.colors.BLUE}
+    last_line_style = {"bold": True, "fg": typer.colors.MAGENTA}
 
-    input(glot["nag"])
-    typer.echo()
+    if len(lines) > 1:
+        last_line = typer.style(lines.pop(), **last_line_style)
+        styled_lines = [typer.style(line, **regular_line_style) for line in lines]
+
+        return "\n".join([*styled_lines, last_line]) + "\n"
+
+    return typer.style(step_body, **regular_line_style) + "\n"
 
 
 def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
@@ -89,11 +186,7 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
 
 
 def prompt_for_new_args(
-    name=None,
-    default_extension=None,
-    default_destination=None,
-    expert=None,
-    edit_after_write=None,
+    name=None, default_extension=None, default_destination=None, edit_after_write=None
 ) -> Iterator[Any]:
     """Prompt for all arguments needed to perform `not do`"""
 
@@ -108,7 +201,6 @@ def prompt_for_new_args(
             glot["new_destination_prompt"],
             {"default": default_destination, "type": Path},
         ),
-        (glot["new_extra_config_prompt"], {"default": expert, "type": bool}),
         (glot["new_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
     )
 
@@ -203,8 +295,7 @@ def confirm_overwrite(procedure_name) -> bool:
     name as an existing one"""
 
     existence_warning = typer.style(
-        glot.localized("overwrite_warn", {"name": procedure_name}),
-        fg=typer.colors.YELLOW,
+        glot.localized("overwrite_warn", {"name": procedure_name}), **WARNING_STYLE
     )
 
     return typer.confirm(existence_warning, abort=True)
@@ -214,7 +305,7 @@ def confirm_drop(procedure_name) -> bool:
     """Prompt y/n when user is about to delete a Procedure file"""
 
     drop_is_destructive_warning = typer.style(
-        glot.localized("drop_warn", {"name": procedure_name}), fg=typer.colors.YELLOW
+        glot.localized("drop_warn", {"name": procedure_name}), **WARNING_STYLE
     )
 
     return typer.confirm(drop_is_destructive_warning, abort=True)
@@ -243,7 +334,7 @@ def config_exists_warn(warning):
     """Inform user that the file exists.
     Suggest they delete it if they want a new one"""
 
-    message = typer.style(warning, fg=typer.colors.YELLOW)
+    message = typer.style(warning, **WARNING_STYLE)
     typer.echo("⚠️  " + message)
     typer.echo(glot["delete_suggestion"])
 
@@ -253,7 +344,7 @@ def warn_missing_file(name):
     """A generic warning when a Procedure with the specified name does not exist"""
 
     message = typer.style(
-        glot.localized("missing_file_warn", {"name": name}), fg=typer.colors.YELLOW
+        glot.localized("missing_file_warn", {"name": name}), **WARNING_STYLE
     )
     typer.echo(message)
 

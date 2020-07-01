@@ -14,7 +14,7 @@ from .constants import (
 )
 from .filesystem import deserialize_procedure_file, path_to_write_to, procedure_location
 from .localization import polyglot as glot
-from .models import Procedure, ProcedureCreate, ProcedureCreateExpert
+from .models import Procedure, ProcedureCreate
 from .theatrics import (
     ask,
     confirm_drop,
@@ -103,9 +103,6 @@ def new(
         callback=empty_callback,
         help=glot["new_empty_option_help"],
     ),
-    expert: bool = typer.Option(  # TODO deprecate
-        False, "--expert", "-T", help=glot["new_expert_option_help"]
-    ),
     edit_after: bool = typer.Option(
         True, "--edit-after", "-A", help=glot["new_edit_after_option_help"]
     ),
@@ -123,7 +120,6 @@ def new(
             "name": procedure_name,
             "default_extension": extension,
             "default_destination": destination_dir,
-            "expert": expert,
             "edit_after_write": edit_after,
         }
 
@@ -133,17 +129,12 @@ def new(
             procedure_name,
             extension,
             destination_dir,
-            expert,
             edit_after,
         ) = prompt_for_new_args(**defaults)
 
     procedure_filename = f"{procedure_name}.{extension}"
     if empty:
-        procedure = (
-            ProcedureCreateExpert(filename=procedure_filename)
-            if expert
-            else ProcedureCreate(filename=procedure_filename)
-        )
+        procedure = ProcedureCreate(filename=procedure_filename)
 
     else:
         procedure = ProcedureCreate(

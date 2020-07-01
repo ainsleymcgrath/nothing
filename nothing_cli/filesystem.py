@@ -139,7 +139,7 @@ def procedure_object_metadata(procedure: Procedure) -> Dict:
         "description": procedure.description,
         "step_count": len(procedure.steps),
         "context_vars": [c.var_name for c in procedure.context]
-        if procedure.context is not None
+        if procedure.context
         else glot["no_context_to_display_placeholder"],
     }
 

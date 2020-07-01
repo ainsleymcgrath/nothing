@@ -2,4 +2,4 @@
 
 # E1136 is incorrectly fired for `polyglot`.
 disable=bad-continuation,inconsistent-return-statements,E1136
-good-names=config,settings,app,do,yaml,i,ls
+good-names=config,settings,app,do,yaml,i,ls,k,v

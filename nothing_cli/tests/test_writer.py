@@ -30,17 +30,6 @@ class TestClean:
     def cleaned_minimal_procedure(self, minimal_procedure):
         yield clean(minimal_procedure)
 
-    def test_unset_fields_are_not_returned(self, cleaned_minimal_procedure):
-        assert set(cleaned_minimal_procedure) == {
-            "title",
-            "steps",
-            "context",
-            "description",
-        }, (
-            "The only keys on the dict returned are the ones "
-            "explicitly set on the input Procedure"
-        )
-
     def test_excluded_fields_are_not_returned(self, cleaned_minimal_procedure):
         assert (
             set(cleaned_minimal_procedure) & FIELD_NAMES_EXCLUDED_FROM_CLEANED_PROCEDURE

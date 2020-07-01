@@ -18,6 +18,7 @@ VALID_PROCEDURE_EXTENSION_NAMES: List = [e.value for e in ValidExtensions]
 DOT_NOTHING_DIRECTORY_NAME: str = ".nothing"
 STEP_SEPARATOR: str = "\n\n"
 PROCEDURE_EXT_PATTERN = re.compile(r"(\.yml|\.yaml)$")
+LAZY_CONTEXT_PREFIX = "__"
 
 CWD: Path = Path.cwd()
 HOME: Path = Path.home()
