@@ -87,6 +87,75 @@ For those without a terminal handy, it'd look like this:
 
 [![asciicast](https://asciinema.org/a/cbLdJ1QCAhHzOuLsHWwZ4fr0e.svg)](https://asciinema.org/a/cbLdJ1QCAhHzOuLsHWwZ4fr0e)
 
+### Explanation
+
+The required keys of a Procedure yaml file are:
+
+- `title`
+- `description`
+- `steps`
+
+Optionally, you can also add:
+
+- `context`
+- `knowns`
+
+Let's break each key down.
+
+#### `title`
+
+This one is self-explanatory: It's the title of your Procedure! When creating a new Procedure with `not new`, the filename defaults to a `slugified-version` of this value, but you can change it during the process.
+
+#### `description`
+
+Also self-explanatory. The description is required because, well, since when has extra documentation hurt anyone?
+
+#### `steps`
+
+This is potentially the most unusual piece of a Procedure. You'll notice that the block of text is prepended by a `|-` and a newline.
+
+That specifies a [block scalar](https://yaml-multiline.info/#block-scalars), a lesser-known feature of yaml. The very existence of this thing was a great inspiration to create this tool in the first place. It functions as a sort of lawless playground for plain text, supporting:
+
+- Multiline text and indentation.
+- A clear visual delineation of content from configuration (content here being your steps)
+- The specification of each step as a paragraph, which is is both obvious to read and easy to edit.
+
+In line with the fun flirtiness of this tool, the last line of any step paragraph is highlighted, since the last line is a very common place to include a command to copy-paste, plus it adds gravitas. 😉
+
+Within a step, any variable defined in `context` or `knowns` can be referenced in curly braces with a Python [f-string-style template](https://docs.python.org/3/tutorial/inputoutput.html#tut-f-strings). Which brings us to:
+
+#### `context`
+
+Context points to a list that contains any mix of plain strings and dictionaries. The former is "simple" and the latter "complex."
+
+```yaml
+context:
+  - simple_variable
+  - complex_variable: Answer this prompt to give a value to this context variable.
+```
+
+For `simple_value`, the user would be prompted at the start of the run for the value with a default phrase: *Please provide a value for [variable name]*.
+
+For a `complex_variable`, the dictionary key will be the variable name, and the value is the prompt used to ask for it. This is generally preferable, but simple context is there if you're in a hurry.
+
+There's one more form for context known as "lazy context." Sometimes, it's not advantageous to prompt the user for a value at the very beginning of a run. With a lazy context variable, the user is prompted right before the first step that references it.
+
+```yaml
+context:
+  - __lazy_variable
+```
+
+The dunder prefix is what lets `nothing-cli` know the variable is lazy. You'll notice that `__feature_branch_name` in the Procedure above is lazy. Lazy context variables can simple or complex and you can use them all you want.
+
+#### `knowns`
+
+Knowns are hardcoded context variables, essentially. They look a lot like complex context. The subtle differences are:
+
+1. Knowns can only be specified as dictionaries.
+2. The value of a known dictionary item is its *value*.
+
+This is useful if you want to reference something changeable over and over again (like a build URL) but the user doesn't necessarily need to know it off the top of their head. This way, authors can disseminate useful information and change it later without making major edits.
+
 ## Inspo & Rationale
 
 Once upon a time, we all read this article about ["do-nothing scripting"](https://blog.danslimmon.com/2019/07/15/do-nothing-scripting-the-key-to-gradual-automation/) by Dan Slimmon.
@@ -165,40 +234,26 @@ Here it is translated to a `nothing-cli` Procedure:
 title: Provision New User Account
 description: Create and distribute an SSH key for a new user.
 context:
-  - username
-  - build_url
-  - dir_url
-  - email: Copy the new user's email and paste here
+  - new_user_username
+  - __email: Find and copy the new user's email and paste here
+knowns:
+  - dir_url: http://example.com/directory
+  - build_url: http://example.com/builds/user_keys
 steps: |-
   Run:
-    ssh-keygen -t rsa -f ~/{username}
+    ssh-keygen -t rsa -f ~/{new_user_username}
 
   Copy ~/new_key.pub into the `user_keys` Git repository, then run:
-    git commit {username}
-    git push
+    git commit {new_user_username}; git push
 
-  Wait for the build job at {build_url} to finish:
+  Wait for the build job at {build_url} to finish.
 
   Go to 1Password
   Paste the contents of ~/new_key into a new document
-  Share the document with {email}
+  Share the document with {__email}
 ```
 
-I know it's impolite to talk about LOC, but the `nothing-cli` procedure version weighs in at 17 to the original 43 (excluding blank lines). The drastically improved readability and editability should speak for itself.
-
-#### Things to Note
-
-You'll notice that context is specified in 2 ways. The first three items are specified using "simple context," where the value is merely a yaml list item. The user is prompted for those values with a default phrase: *Please provide a value for [variable name]*. The last context item uses dictionary syntax, allowing the specification of a friendlier prompt.
-
-Next, the funny looking `|-` next to `steps` specifies a [block scalar](https://yaml-multiline.info/#block-scalars). The very existence of this yaml feature was a great inspiration to create this tool in the first place. It functions as a sort of lawless playground for plain text, supporting:
-
-- Multiline text and indentation.
-- A clear visual delineation of content from configuration
-- The specification of each step as a paragraph, which is is both obvious to read and easy to edit.
-
-It is worth mentioning, however, that the current version of `nothing-cli` is not able to replicate the original script exactly.
-
-If you run them side-by-side, you'll see that the original uses hard-coded values for `dir_url` and `build_url`. Additionally, the user is prompted for `email` in the middle of the script, rather than at the end. These omissions are discussed in the Planned Features section.
+I know it's impolite to talk about LOC, but the `nothing-cli` procedure version weighs in at 17 to the original 43 (excluding blank lines). The drastically improved readability and editability should speak for itself. The Procedure above is functionally identical to the original do-nothing script. Run them side by side and see!
 
 ## Planned Features
 
