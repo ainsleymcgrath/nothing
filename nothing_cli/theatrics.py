@@ -70,7 +70,7 @@ class InterpolationStore:
         self.store: Dict[str, str] = {}
         self.requisite_names = set(
             chain(
-                (p.keys()[0] for p in procedure.presets),
+                (next(iter(p.keys())) for p in procedure.presets),
                 (c.var_name for c in procedure.context),
             )
         )
