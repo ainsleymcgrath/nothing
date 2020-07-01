@@ -88,10 +88,6 @@ class TestStepsFromYAMLBlock:
             "\n" in step.prompt for step in step_objects_from_simplest_step_block
         ), "Newlines are preserved in serialized steps"
 
-    @pytest.mark.xfail(reason="Presets not yet implemented :weary:")
-    def test_steps_with_template_values_from_presets(self):
-        assert 0
-
     @pytest.mark.xfail(reason="Need further discussion on what 'malformed' entails")
     def test_malformed_steps(self):
         assert 0

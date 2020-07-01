@@ -55,14 +55,14 @@ def marquis(title, description):
 # pylint: disable=no-self-use
 class InterpolationStore:
     """Eventually provides access to the value of each variable provided
-    in the `context` and `presets` fields of a Procedure.
+    in the `context` and `knowns` fields of a Procedure.
     In other words, it stores all the values needed to call .format() with
     to display a step in the source procedure.
 
     Any keyname beginning with a __ is 'lazy'. The user is prompted for that before
     the first time it is referenced, then it's stored.
     The user is prompted for values of keys with regular during __init__.
-    Values from `presets` are stored immediately."""
+    Values from `knowns` are stored immediately."""
 
     def __init__(self, procedure: Procedure):
 
@@ -70,13 +70,13 @@ class InterpolationStore:
         self.store: Dict[str, str] = {}
         self.requisite_names = set(
             chain(
-                (next(iter(p.keys())) for p in procedure.presets),
+                (next(iter(p.keys())) for p in procedure.knowns),
                 (c.var_name for c in procedure.context),
             )
         )
 
-        for preset in procedure.presets:
-            k, v = next(iter(preset.items()))
+        for known in procedure.knowns:
+            k, v = next(iter(known.items()))
             self.store[k] = v
 
         eager_context_items = [

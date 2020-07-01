@@ -74,12 +74,12 @@ def mixed_context():
 
 
 @pytest.fixture(scope="module")
-def procedure_with_presets():
-    """A Procedure that utilizes presets"""
+def procedure_with_knowns():
+    """A Procedure that utilizes knowns"""
 
     return """---
     title: Run away
-    presets:
+    knowns:
       - what_to_grab: Everything you own
     steps: |-
         Freak out!!

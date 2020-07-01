@@ -79,7 +79,7 @@ class Procedure(BaseModel):
     description: str = ""
     steps: List[Step]
     context: List[ContextItem] = []
-    presets: List[Dict] = []
+    knowns: List[Dict] = []
 
 
 class ProcedureCreate(Procedure):
@@ -92,6 +92,4 @@ class ProcedureCreate(Procedure):
     context: List[ContextItem] = context_items_from_yaml_list(
         [{glot["default_context_name_name"]: glot["default_context_name_prompt"]}]
     )
-    presets: List[Dict] = [
-        {glot["default_presets_name"]: glot["default_presets_value"]}
-    ]
+    knowns: List[Dict] = [{glot["default_knowns_name"]: glot["default_knowns_value"]}]

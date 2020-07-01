@@ -123,19 +123,19 @@ class TestInterpolationStore:
         assert names == expected_names
 
     @pytest.fixture
-    def procedure_with_presets_only(self, procedure_with_presets):
-        return deserialize_procedure_file(procedure_with_presets)
+    def procedure_with_knowns_only(self, procedure_with_knowns):
+        return deserialize_procedure_file(procedure_with_knowns)
 
-    def test_get_interpolations_presets(self, procedure_with_presets_only):
-        store = InterpolationStore(procedure_with_presets_only)
+    def test_get_interpolations_knowns(self, procedure_with_knowns_only):
+        store = InterpolationStore(procedure_with_knowns_only)
 
-        referencing_step = procedure_with_presets_only.steps[1]
+        referencing_step = procedure_with_knowns_only.steps[1]
 
         interpolations = store.get_interpolations(referencing_step)
 
         assert interpolations == {
             "what_to_grab": "Everything you own"
-        }, "get_interpolations retrieves values that came from presets"
+        }, "get_interpolations retrieves values that came from knowns"
 
     def test_get_interpolations_lazy_context(self, procedure_with_lazy_context):
         procedure = deserialize_procedure_file(procedure_with_lazy_context)
