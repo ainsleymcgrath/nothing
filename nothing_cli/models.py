@@ -38,7 +38,10 @@ class ContextItem(BaseModel):
         """In a Procedure file, if a context item is denoted as a mapping,
         then it is considered "complex"""
 
-        return self.prompt != glot["context_prompt"].format(self.var_name)
+        return self.prompt not in (
+            glot["context_prompt"],
+            glot["context_prompt"].format(self.var_name),
+        )
 
 
 def context_items_from_yaml_list(
@@ -89,7 +92,7 @@ class ProcedureCreate(Procedure):
     title: str = glot["default_title"]
     description: str = glot["default_description"]
     steps: List[Step] = steps_from_yaml_block(glot["default_steps"])
-    context: List[ContextItem] = context_items_from_yaml_list(
-        [{glot["default_context_name_name"]: glot["default_context_name_prompt"]}]
-    )
+    context: List[ContextItem] = [
+        ContextItem(var_name=glot["default_context_name_name"])
+    ]
     knowns: List[Dict] = [{glot["default_knowns_name"]: glot["default_knowns_value"]}]
