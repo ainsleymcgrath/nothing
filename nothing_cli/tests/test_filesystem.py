@@ -8,8 +8,13 @@ from typing import Iterator
 import pytest
 
 from .. import filesystem
-from ..constants import VALID_PROCEDURE_EXTENSION_NAMES, DOT_NOTHING_DIRECTORY_NAME
+from ..constants import (
+    DirectoryChoicesForListCommand,
+    VALID_PROCEDURE_EXTENSION_NAMES,
+    DOT_NOTHING_DIRECTORY_NAME,
+)
 from ..filesystem import (
+    collect_fancy_list_input,
     deserialize_procedure_file,
     friendly_prefix_for_path,
     glob_each_extension,
@@ -255,3 +260,73 @@ class TestProcedureObjectMetadata:
 
         assert procedure_object_metadata(procedure_1)["step_count"] == 2
         assert procedure_object_metadata(procedure_2)["step_count"] == 4
+
+
+class FixturesForCollectFancyListOutput:
+    """Fixtures for TestCollectFancyListOutput"""
+
+    @pytest.fixture
+    def home_dot_nothing_dir(self, tmp_path):
+        dir_ = tmp_path / DOT_NOTHING_DIRECTORY_NAME
+        dir_.mkdir(exist_ok=True)
+        (dir_ / "go-wild.yaml").touch(exist_ok=True)
+        (dir_ / "look-within.yml").touch(exist_ok=True)
+
+        nested = dir_ / "nested"
+        nested.mkdir(exist_ok=True)
+        (nested / "practice.yml").touch(exist_ok=True)
+
+        return dir_
+
+    @pytest.fixture
+    def cwd_dot_nothing_dir(self, home_dot_nothing_dir):
+        dir_ = home_dot_nothing_dir.parent / "working_dir" / DOT_NOTHING_DIRECTORY_NAME
+
+        dir_.mkdir(exist_ok=True, parents=True)
+        (dir_ / "pasta-from-scratch.yaml").touch(exist_ok=True)
+
+        return dir_
+
+    @pytest.fixture
+    def patched_dirs(self, home_dot_nothing_dir, cwd_dot_nothing_dir, monkeypatch):
+        monkeypatch.setattr(filesystem, "CWD", cwd_dot_nothing_dir.parent)
+        monkeypatch.setattr(filesystem, "HOME", home_dot_nothing_dir.parent)
+        monkeypatch.setattr(filesystem, "CWD_DOT_NOTHING_DIR", cwd_dot_nothing_dir)
+        monkeypatch.setattr(filesystem, "HOME_DOT_NOTHING_DIR", home_dot_nothing_dir)
+
+
+class TestCollectFancyListOutput(FixturesForCollectFancyListOutput):
+    """Test suite for not.theatrics.collect_fancy_list_input"""
+
+    @pytest.mark.parametrize(
+        "from_dir, expected",
+        [
+            (
+                DirectoryChoicesForListCommand.cwd,
+                {"cwd": {"./.nothing": ["pasta-from-scratch"]}},
+            ),
+            (
+                DirectoryChoicesForListCommand.home,
+                {
+                    "home": {
+                        "~/.nothing": ["look-within", "go-wild"],
+                        "~/.nothing/nested": ["practice"],
+                    }
+                },
+            ),
+            (
+                DirectoryChoicesForListCommand.both,
+                {
+                    "cwd": {"./.nothing": ["pasta-from-scratch"]},
+                    "home": {
+                        "~/.nothing": ["look-within", "go-wild"],
+                        "~/.nothing/nested": ["practice"],
+                    },
+                },
+            ),
+        ],
+    )
+    def test_include_options(self, from_dir, expected, patched_dirs):
+        procedure_names_by_dir = collect_fancy_list_input(from_dir)
+
+        assert procedure_names_by_dir == expected

@@ -4,13 +4,13 @@ from os.path import getatime, getmtime
 from pathlib import Path
 from time import ctime
 from typing import Dict, Iterable, Iterator, List, Union
-from typing_extensions import Literal
 
 from ruamel.yaml import YAML
 
 from .constants import (
     CWD,
     CWD_DOT_NOTHING_DIR,
+    DirectoryChoicesForListCommand,
     HOME,
     HOME_DOT_NOTHING_DIR,
     PROCEDURE_EXT_PATTERN,
@@ -65,7 +65,7 @@ def procedure_location(procedure_name: str) -> Union[Path, None]:
 def friendly_prefix_for_path(path: Path):
     """Take a long path and return it with a friendly . or ~ where applicable"""
 
-    path_string, home_string, cwd_string = map(str, [path, HOME, CWD])
+    path_string, home_string, cwd_string = map(str, [path.expanduser(), HOME, CWD])
 
     short_prefix, verbose_prefix = (
         (".", cwd_string) if cwd_string in path_string else ("~", home_string)
@@ -74,9 +74,7 @@ def friendly_prefix_for_path(path: Path):
     return path_string.replace(verbose_prefix, short_prefix)
 
 
-def procedure_names_by_parent_dir_name(
-    paths: Iterable[Path], base_dir: Literal["home", "cwd"] = None
-) -> Dict[str, List[str]]:
+def procedure_names_by_parent_dir_name(paths: Iterable[Path]) -> Dict[str, List[str]]:
     """Helper for theatrics._collect_fancy_list_input.
     Returns a dict with friendly path name keys and lists of friendly Procedure
     names as values."""
@@ -156,3 +154,39 @@ def path_to_write_to(global_: bool) -> Path:
         return HOME_DOT_NOTHING_DIR
 
     return CWD_DOT_NOTHING_DIR
+
+
+def collect_fancy_list_input(
+    showing_from_dir: DirectoryChoicesForListCommand,
+) -> Dict[str, Dict[str, str]]:
+    """Utility for show_fancy_list().
+
+    Returns a dict with a key each for cwd and home.
+    The values are dicts where the keys are human-friendly paths
+    and the values are lists of Procedure names."""
+
+    show_both: bool = showing_from_dir is DirectoryChoicesForListCommand.both
+    show_home: bool = showing_from_dir is DirectoryChoicesForListCommand.home
+    show_cwd: bool = showing_from_dir is DirectoryChoicesForListCommand.cwd
+
+    names_by_dir = {}
+
+    if show_home or show_both:
+        procedures_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+            "*", HOME_DOT_NOTHING_DIR, recurse=True
+        )
+
+        names_by_dir["home"] = procedure_names_by_parent_dir_name(
+            procedures_in_home_dot_nothing_dir
+        )
+
+    if show_cwd or show_both:
+        procedures_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
+            "*", CWD_DOT_NOTHING_DIR, recurse=True
+        )
+
+        names_by_dir["cwd"] = procedure_names_by_parent_dir_name(
+            procedures_in_cwd_dot_nothing_dir
+        )
+
+    return names_by_dir

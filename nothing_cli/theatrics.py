@@ -8,19 +8,14 @@ from typing import Any, Dict, Iterator, List, Set, Tuple
 from slugify import slugify
 import typer
 
-from .constants import (
-    CWD_DOT_NOTHING_DIR,
-    HOME_DOT_NOTHING_DIR,
-    DirectoryChoicesForListCommand,
-    LAZY_CONTEXT_PREFIX,
-)
+from .constants import DirectoryChoicesForListCommand, LAZY_CONTEXT_PREFIX
+
 from .localization import polyglot as glot
 from .filesystem import (
-    glob_each_extension,
+    collect_fancy_list_input,
     deserialize_procedure_file,
     procedure_file_metadata,
     procedure_location,
-    procedure_names_by_parent_dir_name,
     procedure_object_metadata,
 )
 from .models import ContextItem, Step, Procedure
@@ -229,47 +224,10 @@ def prompt_for_copy_args(
     return multiprompt(*prompts)
 
 
-# TODO this should be in filesystem
-def _collect_fancy_list_input(
-    showing_from_dir: DirectoryChoicesForListCommand,
-) -> Dict[str, Dict[str, str]]:
-    """Utility for show_fancy_list().
-
-    Returns a dict with a key each for cwd and home.
-    The values are dicts where the keys are human-friendly paths
-    and the values are lists of Procedure names."""
-
-    show_both: bool = showing_from_dir is DirectoryChoicesForListCommand.both
-    show_home: bool = showing_from_dir is DirectoryChoicesForListCommand.home
-    show_cwd: bool = showing_from_dir is DirectoryChoicesForListCommand.cwd
-
-    names_by_dir = {}
-
-    if show_home or show_both:
-        procedures_in_home_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-            "*", HOME_DOT_NOTHING_DIR, recurse=True
-        )
-
-        names_by_dir["home"] = procedure_names_by_parent_dir_name(
-            procedures_in_home_dot_nothing_dir, base_dir="home"
-        )
-
-    if show_cwd or show_both:
-        procedures_in_cwd_dot_nothing_dir: Iterator[Path] = glob_each_extension(
-            "*", CWD_DOT_NOTHING_DIR, recurse=True
-        )
-
-        names_by_dir["cwd"] = procedure_names_by_parent_dir_name(
-            procedures_in_cwd_dot_nothing_dir, base_dir="cwd"
-        )
-
-    return names_by_dir
-
-
 def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
     """Show a pretty output of the Procedure files contained in the specified dir."""
 
-    procedure_names_by_directory: Dict = _collect_fancy_list_input(showing_from_dir)
+    procedure_names_by_directory: Dict = collect_fancy_list_input(showing_from_dir)
 
     for base_dir, subdir_dict in procedure_names_by_directory.items():
         header = typer.style(

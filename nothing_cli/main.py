@@ -12,7 +12,12 @@ from .constants import (
     HOME_DOT_NOTHING_DIR,
     ValidExtensions,
 )
-from .filesystem import deserialize_procedure_file, path_to_write_to, procedure_location
+from .filesystem import (
+    deserialize_procedure_file,
+    friendly_prefix_for_path,
+    path_to_write_to,
+    procedure_location,
+)
 from .localization import polyglot as glot
 from .models import Procedure, ProcedureCreate
 from .theatrics import (
@@ -119,7 +124,7 @@ def new(
         defaults = {
             "name": procedure_name,
             "default_extension": extension,
-            "default_destination": destination_dir,
+            "default_destination": friendly_prefix_for_path(destination_dir),
             "edit_after_write": edit_after,
         }
 
@@ -131,6 +136,8 @@ def new(
             destination_dir,
             edit_after,
         ) = prompt_for_new_args(**defaults)
+        # just in case the user gave a path with a ~ in it
+        destination_dir = Path(destination_dir).expanduser()
 
     procedure_filename = f"{procedure_name}.{extension}"
     if empty:
@@ -142,10 +149,10 @@ def new(
         )
 
     try:
-        writer.write(procedure, destination_dir.expanduser(), force=overwrite)
+        writer.write(procedure, destination_dir, force=overwrite)
     except FileExistsError:
         if confirm_overwrite(procedure_name):
-            writer.write(procedure, destination_dir.expanduser(), force=True)
+            writer.write(procedure, destination_dir, force=True)
 
     if edit_after:
         ctx.invoke(edit, procedure_name=procedure_name)
@@ -196,10 +203,12 @@ def copy(
         extension_without_dot = original_file.suffix.lstrip(".")
         defaults = {
             "default_title": old_procedure.title,
-            "default_destination": original_file.parent,  # TODO use friendly prefix
+            "default_destination": friendly_prefix_for_path(original_file.parent),
             "default_extension": extension_without_dot,
             "edit_after_write": edit_after_write,
         }
+        # just in case the user gave a path with a ~ in it
+        destination_dir = Path(destination_dir).expanduser()
 
         (
             new_procedure_name,
