@@ -28,6 +28,12 @@ from .models import (
 yaml = YAML()
 
 
+# XXX i knew there was a glob for this:
+# "*.y[?am]*l" would work accurately except in extremely bizarre edge cases
+# such as like-- file.yamamaml or file.ymasdfsdl
+# if you've done that to your .nothing dir, you deserve an error imo.
+# would allow deprecation of this method in favor of [path].rglob("*.y[?am]*l")
+# which might be nicer enough to warrant the drop in precision?
 def glob_each_extension(
     procedure_name_glob: str, path: Path, recurse=False
 ) -> Iterator[Path]:
@@ -75,7 +81,7 @@ def friendly_prefix_for_path(path: Path):
 
 
 def procedure_names_by_parent_dir_name(paths: Iterable[Path]) -> Dict[str, List[str]]:
-    """Helper for theatrics._collect_fancy_list_input.
+    """Helper for collect_fancy_list_input.
     Returns a dict with friendly path name keys and lists of friendly Procedure
     names as values."""
 
@@ -95,11 +101,13 @@ def procedure_names_by_parent_dir_name(paths: Iterable[Path]) -> Dict[str, List[
     return accum_dict
 
 
-def deserialize_procedure_file(procedure_content: str) -> Procedure:
+# XXX would be better if this only took paths, since strings are really
+# only passed during tests
+def deserialize_procedure_file(procedure: Union[str, Path]) -> Procedure:
     """Take the content of a Procedure file, try to find the corresponding file,
     return it as a Procedure object"""
 
-    yml: Dict = yaml.load(procedure_content)
+    yml: Dict = yaml.load(procedure)
 
     raw_steps = yml.pop("steps")
     raw_context = yml.pop("context", None)
@@ -107,7 +115,12 @@ def deserialize_procedure_file(procedure_content: str) -> Procedure:
     parsed_steps: List[Step] = steps_from_yaml_block(raw_steps)
     parsed_context: List[ContextItem] = context_items_from_yaml_list(raw_context)
 
-    return Procedure(steps=parsed_steps, context=parsed_context, **yml)
+    return Procedure(
+        filename=getattr(procedure, "name", ""),
+        steps=parsed_steps,
+        context=parsed_context,
+        **yml,
+    )
 
 
 def procedure_file_metadata(file_location: Path) -> Dict:

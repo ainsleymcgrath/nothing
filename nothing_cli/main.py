@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 
 from . import writer
+from .completions import procedure_name_completions
 from .constants import (
     CWD_DOT_NOTHING_DIR,
     DirectoryChoicesForListCommand,
@@ -37,6 +38,10 @@ from .theatrics import (
 
 app = typer.Typer(help=glot["help"])
 
+completable_procedure_name_argument: typer.Argument = typer.Argument(
+    str, autocompletion=procedure_name_completions
+)
+
 
 @app.command(help=glot["init_help"])
 def init():
@@ -59,7 +64,7 @@ def sample(global_: bool = False):
 
 
 @app.command()
-def do(procedure_name: str):
+def do(procedure_name: str = completable_procedure_name_argument):
     """Go through the steps of a Procedure you have already created"""
 
     file_location: Path = procedure_location(procedure_name)
@@ -166,7 +171,9 @@ def new(
 
 
 @app.command()
-def edit(procedure_name: str, rename: bool = False):
+def edit(
+    procedure_name: str = completable_procedure_name_argument, rename: bool = False
+):
     """Edit existing Procedure"""
     path_to_procedure: Path = procedure_location(procedure_name).resolve()
 
@@ -179,9 +186,9 @@ def edit(procedure_name: str, rename: bool = False):
 
 
 @app.command()
-def copy(
+def copy(  # XXX these defaults are wack
     ctx: typer.Context,
-    existing_procedure_name: str,
+    existing_procedure_name: str = completable_procedure_name_argument,
     new_procedure_name=typer.Argument(None),
     new_title: str = None,
     destination_dir: Path = None,
@@ -248,7 +255,9 @@ def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.
 
 
 @app.command()
-def drop(procedure_name: str, no_confirm: bool = False):
+def drop(
+    procedure_name: str = completable_procedure_name_argument, no_confirm: bool = False
+):
     """Permanently delete a Procedure file. Confirm before doing unless specified"""
 
     file: Path = procedure_location(procedure_name)
@@ -265,7 +274,7 @@ def drop(procedure_name: str, no_confirm: bool = False):
 
 
 @app.command()
-def describe(procedure_name: str):
+def describe(procedure_name: str = completable_procedure_name_argument):
     """Display a little overview of the Procedure"""
 
     show_dossier(procedure_name)
