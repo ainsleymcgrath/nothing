@@ -67,7 +67,7 @@
   "overwrite_warn": "🤔 Procedure '{name}' appears to exist already\nWould you like to overwrite it?",
   "drop_warn": "😬 Are you sure you want to permanently delete '{name}'?",
   "stylish_interjection": "Success! 🙌",
-  "missing_file_warn": "😕 It doesn't look like there's a spec for '{name}'.",
+  "missing_file_warn": "😕 It doesn't look like there's a procedure for '{name}'.",
 
   "title_descriptor": "Title",
   "description_descriptor": "Description",

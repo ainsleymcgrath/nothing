@@ -2,6 +2,7 @@
 
 """Pydantic models for Nothing constructs"""
 from typing import Dict, List, Union
+
 from pydantic import BaseModel
 
 from .constants import STEP_SEPARATOR
@@ -96,3 +97,7 @@ class ProcedureCreate(Procedure):
         ContextItem(var_name=glot["default_context_name_name"])
     ]
     knowns: List[Dict] = [{glot["default_knowns_name"]: glot["default_knowns_value"]}]
+
+    @property
+    def name(self):
+        return self.filename.rstrip(".yml")

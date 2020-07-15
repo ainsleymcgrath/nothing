@@ -1,10 +1,37 @@
 # pylint: disable=missing-function-docstring,unused-argument,invalid-name
-
 """Test fixtures that are shared across suites"""
 import json
+from pathlib import Path
 from typing import List
 
 import pytest
+
+from .. import filesystem
+
+
+@pytest.fixture
+def home_dot_nothing_dir_exists(monkeypatch, tmp_path) -> Path:
+    dot_nothing = tmp_path / ".nothing"
+    dot_nothing.mkdir(exist_ok=True)
+    monkeypatch.setattr(filesystem, "HOME_DOT_NOTHING_DIR", dot_nothing)
+
+    return tmp_path
+
+
+@pytest.fixture
+def cwd_dot_nothing_dir_exists(monkeypatch, tmp_path) -> Path:
+    dot_nothing = tmp_path / ".nothing"
+    dot_nothing.mkdir(exist_ok=True)
+    monkeypatch.setattr(filesystem, "CWD_DOT_NOTHING_DIR", dot_nothing)
+
+    return dot_nothing
+
+
+@pytest.fixture
+def both_dot_nothing_dirs_exist(
+    home_dot_nothing_dir_exists, cwd_dot_nothing_dir_exists
+):
+    pass
 
 
 @pytest.fixture(scope="module")
