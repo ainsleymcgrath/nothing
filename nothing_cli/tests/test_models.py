@@ -9,14 +9,13 @@ from ruamel.yaml import YAML
 
 from ..models import context_items_from_yaml_list, steps_from_yaml_block
 
-
 yaml = YAML()
 
 
 class TestContextItemsFromYAMLList:
     """Test suite for not.models.context_items_from_yaml"""
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def context_objects_from_simple_context_list(
         self, procedure_with_context_as_simple_list
     ):
@@ -37,7 +36,7 @@ class TestContextItemsFromYAMLList:
             "when parsing simple context"
         )
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def context_objects_from_complex_context_list(
         self, procedure_with_context_as_list_of_mappings
     ):
@@ -71,7 +70,7 @@ class TestContextItemsFromYAMLList:
 class TestStepsFromYAMLBlock:
     """Test suite for not.models.steps_from_yaml_block"""
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def step_objects_from_simplest_step_block(
         self, super_minimal_procedure_file_content
     ):

@@ -8,6 +8,8 @@ from typing import List
 import pytest
 
 from .. import filesystem
+from ..filesystem import deserialize_procedure_file
+from ..writer import write
 
 
 @pytest.fixture
@@ -33,6 +35,48 @@ def both_dot_nothing_dirs_exist(
     home_dot_nothing_dir_exists, cwd_dot_nothing_dir_exists
 ):
     pass
+
+
+@pytest.fixture
+def basic_proc(cwd_dot_nothing_dir_exists, super_minimal_procedure_file_content):
+    proc = deserialize_procedure_file(super_minimal_procedure_file_content)
+    proc.filename = "basic.yml"
+
+    write(proc, cwd_dot_nothing_dir_exists)
+
+    return proc
+
+
+@pytest.fixture
+def proc_with_lazy_context(cwd_dot_nothing_dir_exists, procedure_with_lazy_context):
+    proc = deserialize_procedure_file(procedure_with_lazy_context)
+    proc.filename = "lazy.yml"
+
+    write(proc, cwd_dot_nothing_dir_exists)
+
+    return proc
+
+
+@pytest.fixture
+def proc_with_context(
+    cwd_dot_nothing_dir_exists, procedure_with_context_as_simple_list
+):
+    proc = deserialize_procedure_file(procedure_with_context_as_simple_list)
+    proc.filename = "context.yml"
+
+    write(proc, cwd_dot_nothing_dir_exists)
+
+    return proc
+
+
+@pytest.fixture
+def proc_with_knowns(cwd_dot_nothing_dir_exists, procedure_with_knowns):
+    proc = deserialize_procedure_file(procedure_with_knowns)
+    proc.filename = "known.yml"
+
+    write(proc, cwd_dot_nothing_dir_exists)
+
+    return proc
 
 
 @pytest.fixture(scope="module")
