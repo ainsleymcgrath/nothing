@@ -1,4 +1,5 @@
-# pylint: disable=missing-function-docstring,unused-argument,invalid-name
+# pylint: disable=missing-function-docstring,unused-argument
+# pylint: disable=invalid-name,redefined-outer-name
 """Test fixtures that are shared across suites"""
 import json
 from pathlib import Path
@@ -49,7 +50,7 @@ def super_minimal_procedure_file_content():
     """
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def procedure_with_context_as_simple_list():
     """A Procedure that uses basic-style context"""
 
