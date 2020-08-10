@@ -6,41 +6,35 @@ from pathlib import Path
 import typer
 
 from . import writer
-from .completions import procedure_name_completions
-from .constants import (
-    CWD_DOT_NOTHING_DIR,
-    DirectoryChoicesForListCommand,
-    HOME_DOT_NOTHING_DIR,
-    ValidExtensions,
-)
+from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT
 from .filesystem import (
     deserialize_procedure_file,
     friendly_prefix_for_path,
     path_to_write_to,
     procedure_location,
+    reset_state,
 )
 from .localization import polyglot as glot
-from .models import Procedure, ProcedureCreate
+from .models import Procedure
+from .subcommand_shared import (
+    completable_procedure_name_argument,
+    global_flag,
+    no_edit_after_flag,
+)
 from .theatrics import (
     ask,
+    config_exists_warn,
     confirm_drop,
     confirm_overwrite,
     interactive_walkthrough,
-    warn_missing_file,
-    prompt_for_copy_args,
     prompt_for_new_args,
-    config_exists_warn,
     show_dossier,
     show_fancy_list,
     success,
+    warn_missing_file,
 )
-
 
 app = typer.Typer(help=glot["help"])
-
-completable_procedure_name_argument: typer.Argument = typer.Argument(
-    str, autocompletion=procedure_name_completions
-)
 
 
 @app.command(help=glot["init_help"])
@@ -71,15 +65,14 @@ def do(procedure_name: str = completable_procedure_name_argument):
 
     if file_location is None:
         warn_missing_file(procedure_name)
-        return
+        raise typer.Abort
 
-    with file_location.open() as file:
-        procedure: Procedure = deserialize_procedure_file(file.read())
+    procedure: Procedure = deserialize_procedure_file(file_location)
 
     interactive_walkthrough(procedure)
 
 
-def empty_callback(ctx: typer.Context, value: bool):
+def _empty_callback(ctx: typer.Context, value: bool):
     """Ensure --empty/-E is always called with --name/-N specified"""
 
     empty_called_without_name = ctx.params.get("procedure_name") is None and value
@@ -96,26 +89,15 @@ def new(
     procedure_name: str = typer.Option(
         None, "--name", "-N", is_eager=True, help=glot["new_procedure_name_option_help"]
     ),
-    extension: ValidExtensions = typer.Option(
-        ValidExtensions.yml,
-        "--extension",
-        "-X",
-        help=glot["new_extension_option_help"],
-        show_default=True,
-    ),
-    global_: bool = typer.Option(
-        False, "--global", "-G", help=glot["new_global_option_help"]
-    ),
+    global_: bool = global_flag,
     empty: bool = typer.Option(
         False,
         "--empty",
         "-E",
-        callback=empty_callback,
+        callback=_empty_callback,
         help=glot["new_empty_option_help"],
     ),
-    edit_after: bool = typer.Option(
-        True, "--edit-after", "-A", help=glot["new_edit_after_option_help"]
-    ),
+    no_edit_after: bool = no_edit_after_flag,
     overwrite: bool = typer.Option(
         False, "--overwrite", "-O", help=glot["new_overwrite_option_help"]
     ),
@@ -128,28 +110,31 @@ def new(
     if not empty:
         defaults = {
             "name": procedure_name,
-            "default_extension": extension,
             "default_destination": friendly_prefix_for_path(destination_dir),
-            "edit_after_write": edit_after,
+            "no_edit_after": no_edit_after,
         }
 
         (
             title,
             description,
             procedure_name,
-            extension,
             destination_dir,
             edit_after,
         ) = prompt_for_new_args(**defaults)
         # just in case the user gave a path with a ~ in it
         destination_dir = Path(destination_dir).expanduser()
 
-    procedure_filename = f"{procedure_name}.{extension}"
+    procedure_filename = f"{procedure_name}.{PROCEDURE_EXT}"
     if empty:
-        procedure = ProcedureCreate(filename=procedure_filename)
-
+        procedure = Procedure(
+            filename=procedure_filename,
+            description=glot["default_description"],
+            steps=glot["default_steps"],
+            context=[glot["default_context_name_name"]],
+            knowns=[{glot["default_knowns_name"]: glot["default_knowns_value"]}],
+        )
     else:
-        procedure = ProcedureCreate(
+        procedure = Procedure(
             title=title, description=description, filename=procedure_filename
         )
 
@@ -160,6 +145,7 @@ def new(
             writer.write(procedure, destination_dir, force=True)
 
     if edit_after:
+        reset_state()
         ctx.invoke(edit, procedure_name=procedure_name)
 
     success(
@@ -174,84 +160,32 @@ def new(
 def edit(
     procedure_name: str = completable_procedure_name_argument, rename: bool = False
 ):
-    """Edit existing Procedure"""
-    path_to_procedure: Path = procedure_location(procedure_name).resolve()
+    """Edit existing Procedure with $EDITOR"""
+
+    path_to_procedure: Path = procedure_location(procedure_name)
+
+    if path_to_procedure is None:
+        warn_missing_file(procedure_name)
+        raise typer.Abort()
 
     if rename:
         new_name = ask(glot["filename_prompt"])
         path_to_procedure.rename(path_to_procedure.parent / new_name)
+        success(
+            glot.localized(
+                "file_renamed", {"name": new_name, "old_name": procedure_name}
+            )
+        )
 
     typer.edit(filename=str(path_to_procedure))
-    success(glot.localized("file_edited", {"name": "procedure_name"}))
+    success(glot.localized("file_edited", {"name": procedure_name}))
 
 
 @app.command()
-def copy(  # XXX these defaults are wack
-    ctx: typer.Context,
-    existing_procedure_name: str = completable_procedure_name_argument,
-    new_procedure_name=typer.Argument(None),
-    new_title: str = None,
-    destination_dir: Path = None,
-    new_extension: ValidExtensions = None,
-    edit_after_write: bool = False,
-):
-    """Copy an old Procedure to a new one with the provided name"""
-
-    original_file: Path = procedure_location(existing_procedure_name)
-
-    if original_file is None:
-        warn_missing_file(existing_procedure_name)
-        return
-
-    old_procedure: Procedure = deserialize_procedure_file(original_file)
-    interactive = existing_procedure_name is not None or new_procedure_name is not None
-
-    if interactive:
-        extension_without_dot = original_file.suffix.lstrip(".")
-        defaults = {
-            "default_title": old_procedure.title,
-            "default_destination": friendly_prefix_for_path(original_file.parent),
-            "default_extension": extension_without_dot,
-            "edit_after_write": edit_after_write,
-        }
-        # just in case the user gave a path with a ~ in it
-        destination_dir = Path(destination_dir).expanduser()
-
-        (
-            new_procedure_name,
-            new_title,
-            destination_dir,
-            new_extension,
-            edit_after_write,
-        ) = prompt_for_copy_args(**defaults)
-
-    new_filename = f"{new_procedure_name}.{new_extension}"
-    new_procedure: Procedure = old_procedure.copy(
-        update={"filename": new_filename, "title": new_title}
-    )
-
-    try:
-        writer.write(new_procedure, destination_dir.expanduser())
-    except FileExistsError:
-        if confirm_overwrite(new_procedure_name):
-            writer.write(new_procedure, destination_dir.expanduser(), force=True)
-
-    if edit_after_write:
-        ctx.invoke(edit, procedure_name=new_procedure_name)
-
-    success(
-        glot.localized(
-            "copied",
-            {"name": existing_procedure_name, "destination": destination_dir.resolve()},
-        )
-    )
-
-
-@app.command()
-def ls(include: DirectoryChoicesForListCommand = DirectoryChoicesForListCommand.both):
+def ls():
     """Display the location of every Procedure in cwd and/or $HOME"""
 
-    show_fancy_list(include)
+    show_fancy_list()
 
 
 @app.command()
