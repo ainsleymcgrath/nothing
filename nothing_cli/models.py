@@ -18,7 +18,7 @@ class Procedure(BaseModel):
     title: str
     steps: List[str]
     path: Optional[Path] = None
-    description: Optional[str] = None
+    description: Optional[str] = ""
     context: List[Union[str, Dict]] = []
     knowns: List[Dict] = []
 
