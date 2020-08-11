@@ -20,15 +20,16 @@ def procedure_name_completions(incomplete: str):
 
     for path, proc in procedures:
         if incomplete in proc.name:
-            yield path.stem, f"'{proc.description}'"
+            yield path.stem, f"'{proc.description or '-'}'"
 
 
 completable_procedure_name_argument: typer.Argument = typer.Argument(
     str, autocompletion=procedure_name_completions
 )
 
+
 no_edit_after_flag = typer.Option(
-    True,
+    False,
     "--no-edit-after",
     "-A",
     help=glot["edit_after_option_help"],

@@ -1,16 +1,13 @@
 """pretty printing utilities for not"""
-from itertools import chain
 from pathlib import Path
-from textwrap import indent
 from string import Formatter
-from typing import Any, Dict, Iterator, List, Set, Tuple
+from textwrap import indent
+from typing import Any, Dict, Iterator, List, Set, Tuple, Union
 
-from slugify import slugify
 import typer
+from slugify import slugify
 
-from .constants import DirectoryChoicesForListCommand, LAZY_CONTEXT_PREFIX
-
-from .localization import polyglot as glot
+from .constants import LAZY_CONTEXT_PREFIX
 from .filesystem import (
     collect_fancy_list_input,
     deserialize_procedure_file,
@@ -18,8 +15,8 @@ from .filesystem import (
     procedure_location,
     procedure_object_metadata,
 )
-from .models import ContextItem, Step, Procedure
-
+from .localization import polyglot as glot
+from .models import Procedure, context_var_name
 
 WARNING_STYLE = {"fg": typer.colors.YELLOW}
 
@@ -34,14 +31,15 @@ def marquis(title, description):
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     """
 
-    border_length = max(len(title), len(description)) + 8
+    border_length = max(len(title), len(description or "")) + 8
     border = "~" * border_length
     styled_title = typer.style(f" {title} ", bold=True, fg=typer.colors.MAGENTA)
 
     typer.echo(border)
     typer.echo()
     typer.echo(styled_title)
-    typer.echo(f"    '{description}' ")
+    if description:
+        typer.echo(f"    '{description}' ")
     typer.echo()
     typer.echo(border)
     typer.echo()
@@ -61,43 +59,50 @@ class InterpolationStore:
 
     def __init__(self, procedure: Procedure):
 
-        self.procedure = procedure
+        self.procedure: Procedure = procedure
         self.store: Dict[str, str] = {}
-        self.requisite_names = set(
-            chain(
-                (next(iter(p.keys())) for p in procedure.knowns),
-                (c.var_name for c in procedure.context),
-            )
-        )
+        self.requisite_names: Set = {
+            *(next(iter(p.keys())) for p in procedure.knowns),
+            *(context_var_name(c) for c in procedure.context),
+        }
 
-        for known in procedure.knowns:
-            k, v = next(iter(known.items()))
-            self.store[k] = v
+        if not self.requisite_names:
+            return
 
-        eager_context_items = [
+        if procedure.knowns:
+            for known in procedure.knowns:
+                k, v = next(iter(known.items()))
+                self.store[k] = v
+
+        eager_context_items = (
             item
             for item in procedure.context
-            if not item.var_name.startswith(LAZY_CONTEXT_PREFIX)
-        ]
+            if not context_var_name(item).startswith(LAZY_CONTEXT_PREFIX)
+        )
 
         for item in eager_context_items:
-            self.store[item.var_name] = self.prompt_for_value(item)
+            self.store[context_var_name(item)] = self.prompt_for_value(item)
 
-    def prompt_for_value(self, item: ContextItem) -> str:
-        """Use ContextItem.prompt to get a value from the user.
-        Here for easier test patching, mostly."""
+    def prompt_for_value(self, item: Union[str, Dict]) -> str:
+        """Either use the provided prompt to ask for a variables value, or ask
+        with the default prompt if one was not provided."""
 
-        value = ask(item.prompt)
+        value = ask(
+            glot["default_context_prompt"].format(item)
+            if isinstance(item, str)
+            else next(iter(item.values()))
+        )
 
         return value
 
-    def get_interpolations(self, step: Step) -> Dict:
+    def get_interpolations(self, step: str, index: int) -> Dict:
         """Returns the dictionary of kwargs the step needs for .format()"""
 
-        key_names = self.get_format_names(step.prompt)
+        key_names = self.get_format_names(step)
+
         if not key_names.issubset(self.requisite_names):
             warning = typer.style(
-                glot.localized("undefined_variable_warn", {"step_number": step.number}),
+                glot.localized("undefined_variable_warn", {"step_number": index + 1}),
                 **WARNING_STYLE,
             )
             typer.echo(warning)
@@ -105,8 +110,8 @@ class InterpolationStore:
 
         for key in key_names:
             if key not in self.store:
-                context: ContextItem = next(
-                    c for c in self.procedure.context if c.var_name == key
+                context: Union[str, Dict] = next(
+                    c for c in self.procedure.context if context_var_name(c) == key
                 )
                 self.store[key] = self.prompt_for_value(context)
 
@@ -132,17 +137,14 @@ def interactive_walkthrough(procedure: Procedure) -> None:
     store = InterpolationStore(procedure)
 
     typer.echo()
-    for step in procedure.steps:
+    for i, step in enumerate(procedure.steps):
         step_header = typer.style(
-            # XXX why do steps know their numbers? :thinking:
-            f"{glot['step_prefix']} {step.number}:",
-            bg=typer.colors.WHITE,
-            fg=typer.colors.BLACK,
+            f"{glot['step_prefix']} {i}:", bg=typer.colors.WHITE, fg=typer.colors.BLACK
         )
         typer.echo(step_header)
 
-        interpolations = store.get_interpolations(step)
-        step_body = styled_step(step.prompt.format(**interpolations))
+        interpolations = store.get_interpolations(step, i)
+        step_body = styled_step(step.format(**interpolations))
 
         typer.echo(step_body)
 
@@ -181,7 +183,7 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
 
 
 def prompt_for_new_args(
-    name=None, default_extension=None, default_destination=None, edit_after_write=None
+    name=None, default_destination=None, no_edit_after=None
 ) -> Iterator[Any]:
     """Prompt for all arguments needed to perform `not do`"""
 
@@ -189,63 +191,39 @@ def prompt_for_new_args(
     name = slugify(title) if name is None else name
 
     prompts = (
-        (glot["new_description_prompt"], {}),
+        (glot["new_description_prompt"], {"default": ""}),
         (glot["new_name_prompt"], {"default": name}),
-        (glot["new_extension_prompt"], {"default": default_extension}),
         (
             glot["new_destination_prompt"],
             {"default": default_destination, "type": Path},
         ),
-        (glot["new_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
+        (glot["new_open_editor_prompt"], {"default": no_edit_after, "type": bool}),
     )
 
     return (title, *multiprompt(*prompts))
 
 
-def prompt_for_copy_args(
-    default_title=None,
-    default_destination=None,
-    default_extension=None,
-    edit_after_write=None,
-) -> Iterator[Any]:
-    """Prompt for all arguments needed to perform `not copy`"""
-
-    prompts = (
-        (glot["edit_name_prompt"], {}),
-        (glot["edit_title_prompt"], {"default": default_title, "type": str}),
-        (
-            glot["edit_destination_prompt"],
-            {"default": default_destination, "type": Path},
-        ),
-        (glot["edit_extension_prompt"], {"default": default_extension, "type": str}),
-        (glot["edit_open_editor_prompt"], {"default": edit_after_write, "type": bool}),
-    )
-
-    return multiprompt(*prompts)
-
-
-def show_fancy_list(showing_from_dir: DirectoryChoicesForListCommand):
+def show_fancy_list():
     """Show a pretty output of the Procedure files contained in the specified dir."""
 
-    procedure_names_by_directory: Dict = collect_fancy_list_input(showing_from_dir)
+    procedure_names_by_directory: Dict = collect_fancy_list_input()
 
-    for base_dir, subdir_dict in procedure_names_by_directory.items():
+    typer.echo()
+    for base_dir, procedure_names in procedure_names_by_directory.items():
         header = typer.style(
-            f"[ {glot['GLOBAL'] if base_dir == 'home' else glot['LOCAL']} ]\n",
+            f"[ {glot['GLOBAL'] if base_dir == 'global' else glot['LOCAL']} ]\n",
             typer.colors.BRIGHT_BLUE,
         )
         typer.echo(header)
 
-        for dir_name, procedure_list in subdir_dict.items():
-            subdir_header = typer.style(
-                indent(f"{dir_name}/", "  "), fg=typer.colors.CYAN
-            )
-            typer.echo(subdir_header)
+        names_count = len(procedure_names)
 
-            for i, name in enumerate(procedure_list):
-                typer.echo(indent(name, "    "))
-                if i == len(procedure_list) - 1:
-                    typer.echo()
+        for i, name in enumerate(procedure_names):
+            typer.echo(indent(name, " " * 4))
+
+            if i == names_count - 1:
+                # newline after the last item
+                typer.echo()
 
 
 def confirm_overwrite(procedure_name) -> bool:
@@ -297,7 +275,6 @@ def config_exists_warn(warning):
     typer.echo(glot["delete_suggestion"])
 
 
-# TODO: raise typer.Abort() when called
 def warn_missing_file(name):
     """A generic warning when a Procedure with the specified name does not exist"""
 
@@ -343,6 +320,7 @@ def show_dossier(procedure_name):
             glot["full_path_descriptor"],
             glot["step_count_descriptor"],
             glot["context_vars_descriptor"],
+            glot["knowns_descriptor"],
             glot["last_accessed_descriptor"],
             glot["last_modified_descriptor"],
         )
@@ -354,9 +332,15 @@ def show_dossier(procedure_name):
         file_meta["full_path"],
         obj_meta["step_count"],
         obj_meta["context_vars"],
+        # knowns will look like [ name=value, other_name=other_value ] etc
+        ["=".join(k.popitem()) for k in obj_meta["knowns"]]
+        if isinstance(obj_meta["knowns"], list)
+        else obj_meta["knowns"],
         file_meta["last_accessed"],
         file_meta["last_modified"],
     )
 
-    for field, value in zip(colored_keys, meta_values):
+    for field, _value in zip(colored_keys, meta_values):
+        # strip the quotes off any list items for human-ness
+        value = f'[ {", ".join(_value)} ]' if isinstance(_value, list) else _value
         typer.echo(f"{field} {value}")

@@ -11,9 +11,7 @@ from .constants import STEP_SEPARATOR
 
 # pylint: disable= no-self-argument,no-self-use
 class Procedure(BaseModel):
-    """A Procedure file as a Python object.
-    Can be initialized without filename since it's mostly
-    here for deserializating spec files"""
+    """A Procedure file as a Python object."""
 
     title: str
     steps: List[str]

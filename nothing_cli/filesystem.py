@@ -27,9 +27,7 @@ def initstate() -> Callable[[Optional[bool]], Union[Iterator[Path], List[Path]]]
     application state can be defined as the collection of .yml files in home and cwd"""
 
     if not CWD_DOT_NOTHING_DIR.exists() and not HOME_DOT_NOTHING_DIR.exists():
-        # TODO: localize
-        echo("No .nothing director in home or cwd.")
-        echo("Run `not init` to create one.")
+        echo(glot["missing_dot_nothings_warn"])
 
         raise Abort
 
@@ -48,13 +46,6 @@ state: Callable[[Optional[bool]], Union[List, Iterator]] = initstate()
 
 
 # pylint: disable=unused-variable, redefined-outer-name
-def reset_state():
-    """When `not edit` runs after `not new`, state needs to be reset to reflect the
-    newly added file in the target directory"""
-
-    state = initstate()  # noqa
-
-
 def procedure_location(procedure_name: str) -> Union[Path, None]:
     """Take the name of a Procedure, find the corresponding file, and return its
     canonical location as a path, if it exists.
@@ -86,9 +77,8 @@ def deserialize_procedure_file(procedure_path: Path) -> Procedure:
     return Procedure(path=procedure_path, **fields)
 
 
-# noqa
 # no need to test stdlib
-def procedure_file_metadata(file_location: Path) -> Dict:
+def procedure_file_metadata(file_location: Path) -> Dict:  # pragma: no cover
     """ A dict of:
         full_path
         last_modified
@@ -114,14 +104,10 @@ def procedure_object_metadata(procedure: Procedure) -> Dict:
 
     return {
         "title": procedure.title,
-        "description": procedure.description,
+        "description": procedure.description or "-",
         "step_count": len(procedure.steps),
-        "context_vars": [context_var_name(c) for c in procedure.context]
-        if procedure.context
-        else glot["no_context_to_display_placeholder"],
-        "knowns": list(procedure.knowns)
-        if procedure.knowns
-        else glot["no_knowns_to_display_placeholder"],
+        "context_vars": [context_var_name(c) for c in procedure.context] or "-",
+        "knowns": list(procedure.knowns) or "-",
     }
 
 
