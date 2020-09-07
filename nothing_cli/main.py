@@ -7,7 +7,7 @@ from pathlib import Path
 import typer
 
 from . import writer
-from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT
+from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT, VERSION
 from .filesystem import (
     deserialize_procedure_file,
     friendly_prefix_for_path,
@@ -34,6 +34,28 @@ from .theatrics import (
 )
 
 app = typer.Typer(help=glot["help"])
+
+
+def _version_callback(value: bool):
+    if value:
+        typer.echo(VERSION)
+        raise typer.Exit()
+
+
+# pylint: disable=unused-argument
+@app.callback()
+def _(
+    version: bool = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=_version_callback,
+        is_eager=True,
+        help=glot["version_help"],
+    )
+):
+    """This unnamed function is for registering any --options that ought to be attached
+    to the `not` command itself, and not any subcommands."""
 
 
 @app.command(help=glot["init_help"])

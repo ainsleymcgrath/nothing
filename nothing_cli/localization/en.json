@@ -25,6 +25,7 @@
   "both": "both",
 
   "help": "Nothing helps coder be more smarter & less dumber.",
+  "version_help": "Print the nothing-cli version and exit.",
   "file_written": "{filename} written to {destination}",
   "filename_prompt": "What is the new name for the file? 📝",
   "file_edited": "Edited {name}",

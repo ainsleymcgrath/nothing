@@ -4,7 +4,7 @@
 from pathlib import Path
 
 VERSION: str = next(
-    line.split(" = ")[1].rstrip("\n")
+    line.split(" = ")[1].rstrip("\n").lstrip('"').rstrip('"')
     for line in Path("pyproject.toml").open().readlines()
     if line.startswith("version = ")
 )
