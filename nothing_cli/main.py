@@ -6,8 +6,8 @@ from pathlib import Path
 
 import typer
 
-from . import writer
-from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT, VERSION
+from . import __version__, writer
+from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT
 from .filesystem import (
     deserialize_procedure_file,
     friendly_prefix_for_path,
@@ -38,7 +38,7 @@ app = typer.Typer(help=glot["help"])
 
 def _version_callback(value: bool):
     if value:
-        typer.echo(VERSION)
+        typer.echo(__version__)
         raise typer.Exit()
 
 
@@ -55,7 +55,7 @@ def _(
     )
 ):
     """This unnamed function is for registering any --options that ought to be attached
-    to the `not` command itself, and not any subcommands."""
+    to the `not` command itself, but not any subcommands."""
 
 
 @app.command(help=glot["init_help"])
