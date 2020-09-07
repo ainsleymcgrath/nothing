@@ -8,11 +8,7 @@ import typer
 
 from . import __version__, writer
 from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT
-from .filesystem import (
-    deserialize_procedure_file,
-    friendly_prefix_for_path,
-    procedure_location,
-)
+from .filesystem import deserialize_procedure_file, procedure_location
 from .localization import polyglot as glot
 from .models import Procedure
 from .subcommand_shared import (
@@ -168,7 +164,7 @@ def new(
 
     prompt_display_defaults = {
         "name": procedure_name,
-        "default_destination": friendly_prefix_for_path(destination_dir),
+        "global_": global_,
         "edit_after": edit_after,
     }
 
@@ -177,14 +173,10 @@ def new(
     title = ""
     description = ""
 
-    if not (skeleton or nothing):
-        (
-            title,
-            description,
-            procedure_name,
-            destination_dir,
-            edit_after,
-        ) = prompt_for_new_args(**prompt_display_defaults)
+    if not (skeleton or nothing):  # if neither given, we're getting info interactively
+        (title, description, procedure_name, _global, edit_after) = prompt_for_new_args(
+            **prompt_display_defaults
+        )
 
     # just in case the user gave a path with a ~ in it
     destination_dir = Path(destination_dir).expanduser()

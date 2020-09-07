@@ -5,7 +5,6 @@ from textwrap import indent
 from typing import Any, Dict, Iterator, List, Set, Tuple, Union
 
 import typer
-from click import Choice
 from slugify import slugify
 
 from .constants import LAZY_CONTEXT_PREFIX, MISSING_INFO_PALCEHOLDER
@@ -183,9 +182,7 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
         yield value
 
 
-def prompt_for_new_args(
-    name=None, default_destination="cwd", edit_after=None
-) -> Iterator[Any]:
+def prompt_for_new_args(name=None, global_=False, edit_after=None) -> Iterator[Any]:
     """Prompt for all arguments needed to perform `not do`"""
 
     title = ask(glot["new_title_prompt"])
@@ -194,14 +191,7 @@ def prompt_for_new_args(
     prompts = (
         (glot["new_description_prompt"], {"default": ""}),
         (glot["new_name_prompt"], {"default": name}),
-        (
-            glot["new_destination_prompt"],
-            {
-                "default": default_destination,
-                "type": Choice(["home", "cwd"]),
-                "show_choices": True,
-            },
-        ),
+        (glot["new_global_prompt"], {"default": global_}),
         (glot["new_open_editor_prompt"], {"default": edit_after, "type": bool}),
     )
 

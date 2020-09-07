@@ -43,7 +43,7 @@ class _NothingCLIInputs(NamedTuple):
     title: str
     description: str = ""
     filename: str = ""
-    destination: str = ""
+    global_: str = ""
     edit: str = ""
 
 
@@ -81,7 +81,7 @@ def test_with_no_options_accept_all_defaults(
 @pytest.fixture
 def user_accepts_no_defaults() -> _NothingCLIInputs:
     return _NothingCLIInputs(
-        title="finding nemo", description="Find dat boi", destination="home", edit="no"
+        title="finding nemo", description="Find dat boi", global_="home", edit="no"
     )
 
 

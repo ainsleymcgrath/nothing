@@ -46,7 +46,7 @@
   "new_description_prompt": "A short description",
   "new_title_prompt": "The title of your Procedure",
   "new_name_prompt": "The name of the file",
-  "new_destination_prompt": "Destination directory",
+  "new_global_prompt": "Make global?",
   "new_open_editor_prompt": "Open $EDITOR now?",
 
   "new_help": "Create a new Procedure. Interactive when called without arguments (recommended).",
