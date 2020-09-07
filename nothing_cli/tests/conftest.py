@@ -3,87 +3,88 @@
 """Test fixtures that are shared across suites"""
 import json
 from pathlib import Path
-from typing import List
+from typing import Callable, List, Tuple
 
 import pytest
 
-from .. import filesystem
+from .. import filesystem, main
 from ..filesystem import deserialize_procedure_file
-from ..writer import write
+from ..models import Procedure
 
 
 @pytest.fixture
-def home_dot_nothing_dir_exists(monkeypatch, tmp_path) -> Path:
-    dot_nothing = tmp_path / ".nothing"
-    dot_nothing.mkdir(exist_ok=True)
+def patched_filesystem(monkeypatch, tmp_path) -> Tuple[Path, Path]:
+    home = tmp_path / "home"
+    cwd = tmp_path / "cwd"
+    monkeypatch.setattr(filesystem, "HOME", home)
+    monkeypatch.setattr(filesystem, "CWD", cwd)
+
+    return home, cwd
+
+
+@pytest.fixture(autouse=True)
+def existing_home_dot_nothing_dir(monkeypatch, patched_filesystem) -> Path:
+    dot_nothing = patched_filesystem[0] / ".nothing"
+    dot_nothing.mkdir(exist_ok=True, parents=True)
     monkeypatch.setattr(filesystem, "HOME_DOT_NOTHING_DIR", dot_nothing)
+    monkeypatch.setattr(main, "HOME_DOT_NOTHING_DIR", dot_nothing)
 
-    return tmp_path
+    return dot_nothing
 
 
-@pytest.fixture
-def cwd_dot_nothing_dir_exists(monkeypatch, tmp_path) -> Path:
-    dot_nothing = tmp_path / ".nothing"
-    dot_nothing.mkdir(exist_ok=True)
+@pytest.fixture(autouse=True)
+def existing_cwd_dot_nothing_dir(monkeypatch, patched_filesystem) -> Path:
+    dot_nothing = patched_filesystem[1] / ".nothing"
+    dot_nothing.mkdir(exist_ok=True, parents=True)
     monkeypatch.setattr(filesystem, "CWD_DOT_NOTHING_DIR", dot_nothing)
+    monkeypatch.setattr(main, "CWD_DOT_NOTHING_DIR", dot_nothing)
 
     return dot_nothing
 
 
 @pytest.fixture
-def both_dot_nothing_dirs_exist(
-    home_dot_nothing_dir_exists, cwd_dot_nothing_dir_exists
-):
-    pass
+def existing_proc_file_path() -> Callable[[Path, str, str], Path]:
+    """Helper to take raw yml text, write it to a temporary file, and return the path"""
+
+    def _proc_file_path(parent: Path, filename: str, content: str):
+        proc_file = parent / filename
+        proc_file.touch()
+
+        with proc_file.open("w") as f:
+            f.write(content)
+
+        # "refresh" state each time a proc gets written
+        filesystem.state = filesystem.initstate()
+        return proc_file
+
+    return _proc_file_path
 
 
 @pytest.fixture
-def basic_proc(cwd_dot_nothing_dir_exists, super_minimal_procedure_file_content):
-    proc = deserialize_procedure_file(super_minimal_procedure_file_content)
-    proc.filename = "basic.yml"
+def existing_proc_instance(
+    existing_proc_file_path, existing_cwd_dot_nothing_dir
+) -> Callable[[Path, str, str], Procedure]:
+    """Helper to take raw yml text, write it to a temporary file, and instantiate
+    a Procedure from that file. You probably don't care where it goes, so it
+    defaults to CWD. Can be overriden."""
 
-    write(proc, cwd_dot_nothing_dir_exists)
+    def _proc_instance(
+        filename: str, content: str, parent=existing_cwd_dot_nothing_dir
+    ):
+        return deserialize_procedure_file(
+            existing_proc_file_path(parent, filename, content)
+        )
 
-    return proc
-
-
-@pytest.fixture
-def proc_with_lazy_context(cwd_dot_nothing_dir_exists, procedure_with_lazy_context):
-    proc = deserialize_procedure_file(procedure_with_lazy_context)
-    proc.filename = "lazy.yml"
-
-    write(proc, cwd_dot_nothing_dir_exists)
-
-    return proc
+    return _proc_instance
 
 
 @pytest.fixture
-def proc_with_context(
-    cwd_dot_nothing_dir_exists, procedure_with_context_as_simple_list
-):
-    proc = deserialize_procedure_file(procedure_with_context_as_simple_list)
-    proc.filename = "context.yml"
-
-    write(proc, cwd_dot_nothing_dir_exists)
-
-    return proc
-
-
-@pytest.fixture
-def proc_with_knowns(cwd_dot_nothing_dir_exists, procedure_with_knowns):
-    proc = deserialize_procedure_file(procedure_with_knowns)
-    proc.filename = "known.yml"
-
-    write(proc, cwd_dot_nothing_dir_exists)
-
-    return proc
-
-
-@pytest.fixture(scope="module")
-def super_minimal_procedure_file_content():
+def most_basic_proc():
     """The bare minimum spec: just a title and newline-delimited steps"""
 
-    return """---
+    return (
+        "basic.yml",
+        """---
     title: Set yourself up to be the automation whiz
     steps: |-
         Download Nothing by running this:
@@ -91,14 +92,17 @@ def super_minimal_procedure_file_content():
 
         Profit. use the `not` command:
         not do [your boring task]
-    """
+    """,
+    )
 
 
 @pytest.fixture
 def procedure_with_context_as_simple_list():
     """A Procedure that uses basic-style context"""
 
-    return """---
+    return (
+        "simple.yml",
+        """---
     title: A sample set of do-nothing instructions
     context:
       - current_user_name
@@ -108,14 +112,17 @@ def procedure_with_context_as_simple_list():
 
         I heard you accomplished something great today: {what_user_accomplished_today}.
         Give yourself a pat on the back!
-    """
+    """,
+    )
 
 
 @pytest.fixture(scope="module")
 def procedure_with_context_as_list_of_mappings():
     """A Procedure that uses mapping-style context"""
 
-    return """---
+    return (
+        "preflight.yml",
+        """---
     title: Preflight Checks
     context:
       - name: What's your name?
@@ -131,7 +138,8 @@ def procedure_with_context_as_list_of_mappings():
         We have all snacks.
 
         Enjoy your flight!
-    """
+    """,
+    )
 
 
 @pytest.fixture(scope="module")
@@ -149,7 +157,9 @@ def mixed_context():
 def procedure_with_knowns():
     """A Procedure that utilizes knowns"""
 
-    return """---
+    return (
+        "run.yml",
+        """---
     title: Run away
     knowns:
       - what_to_grab: Everything you own
@@ -160,14 +170,17 @@ def procedure_with_knowns():
 
         Get out of here!
         Run as fast as you can!!
-    """
+    """,
+    )
 
 
 @pytest.fixture(scope="module")
 def procedure_with_lazy_context():
     """A Procedure with a lazy context var"""
 
-    return """---
+    return (
+        "sleep.yml",
+        """---
     title: Get some sleep
     context:
       - __latest_bedtime: What time did you go to sleep last night?
@@ -179,12 +192,56 @@ def procedure_with_lazy_context():
         You can do better tonight.
 
         Go to sleep
-    """
+    """,
+    )
 
 
-@pytest.fixture(scope="module")
-def procedure_with_everything():
-    """A Procedure with a value for every optional key"""
+@pytest.fixture
+def files_in_cwd(
+    existing_cwd_dot_nothing_dir: Path,
+    existing_proc_file_path: Callable,
+    most_basic_proc: Tuple[str, str],
+    procedure_with_context_as_list_of_mappings: Tuple[str, str],
+    procedure_with_context_as_simple_list: Tuple[str, str],
+) -> List[Path]:
+    return [
+        existing_proc_file_path(existing_cwd_dot_nothing_dir, name, content)
+        for (name, content) in [
+            most_basic_proc,
+            procedure_with_context_as_list_of_mappings,
+            procedure_with_context_as_simple_list,
+        ]
+    ]
+
+
+@pytest.fixture
+def files_in_home(
+    existing_home_dot_nothing_dir: Path,
+    existing_proc_file_path: Callable,
+    procedure_with_lazy_context: Tuple[str, str],
+    procedure_with_knowns: Tuple[str, str],
+) -> List[Path]:
+    return [
+        existing_proc_file_path(existing_home_dot_nothing_dir, name, content)
+        for (name, content) in [procedure_with_lazy_context, procedure_with_knowns]
+    ]
+
+
+@pytest.fixture
+def files_in_cwd_and_home(
+    files_in_cwd: List[Path], files_in_home: List[Path]
+) -> List[Path]:
+    return files_in_cwd + files_in_home
+
+
+@pytest.fixture
+def path_to_simple_basic_proc_file(
+    most_basic_proc: Tuple[str, str],
+    existing_proc_file_path: Callable,
+    existing_cwd_dot_nothing_dir: Path,
+) -> Path:
+    name, content = most_basic_proc
+    return existing_proc_file_path(existing_cwd_dot_nothing_dir, name, content)
 
 
 def pytest_assertrepr_compare(op, left, right):

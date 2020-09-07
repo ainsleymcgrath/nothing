@@ -104,10 +104,11 @@ def procedure_object_metadata(procedure: Procedure) -> Dict:
 
     return {
         "title": procedure.title,
-        "description": procedure.description or "-",
+        # move the dashes into theatrics and just return falsy values here
+        "description": procedure.description,
         "step_count": len(procedure.steps),
-        "context_vars": [context_var_name(c) for c in procedure.context] or "-",
-        "knowns": list(procedure.knowns) or "-",
+        "context_vars": [context_var_name(c) for c in procedure.context],
+        "knowns": list(procedure.knowns),
     }
 
 

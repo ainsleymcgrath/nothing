@@ -1,6 +1,7 @@
 # pylint: disable=too-many-arguments
 
 """The subcommands of `not`"""
+
 from pathlib import Path
 
 import typer
@@ -10,15 +11,14 @@ from .constants import CWD_DOT_NOTHING_DIR, HOME_DOT_NOTHING_DIR, PROCEDURE_EXT
 from .filesystem import (
     deserialize_procedure_file,
     friendly_prefix_for_path,
-    path_to_write_to,
     procedure_location,
 )
 from .localization import polyglot as glot
 from .models import Procedure
 from .subcommand_shared import (
     completable_procedure_name_argument,
+    edit_after_flag,
     global_flag,
-    no_edit_after_flag,
 )
 from .theatrics import (
     ask,
@@ -47,15 +47,6 @@ def init():
         success(glot["made_cwd_dot_nothing_dir"])
 
 
-@app.command(help=glot["sample_help"])
-def sample(global_: bool = False):
-    """Write a cutesy sample Procedure."""
-
-    destination = path_to_write_to(global_)
-    writer.write_easter(destination)
-    success(glot.localized("made_sample_procedure", {"directory": destination}))
-
-
 @app.command()
 def do(procedure_name: str = completable_procedure_name_argument):
     """Go through the steps of a Procedure you have already created"""
@@ -71,6 +62,61 @@ def do(procedure_name: str = completable_procedure_name_argument):
     interactive_walkthrough(procedure)
 
 
+def _which_procedure(
+    which: str,
+    title: str,
+    description: str,
+    destination_dir: Path,
+    procedure_filename: str,
+) -> Procedure:
+    """Wrapper around the logic for deciding what procedure to write when calling
+    `not new` with different arguments."""
+
+    path = destination_dir / procedure_filename
+    proc_map = {
+        "skeleton": Procedure(
+            path=path,
+            title=glot["skeleton_title"],
+            description=glot["skeleton_description"],
+            steps=glot["skeleton_steps"],
+            context=[glot["skeleton_context_name_name"]],
+            knowns=[{glot["skeleton_knowns_name"]: glot["skeleton_knowns_value"]}],
+        ),
+        "nothing": Procedure(
+            path=destination_dir / "nothing.yml",
+            title=glot["easter_title"],
+            description=glot["easter_description"],
+            steps=glot["easter_steps"],
+            context=[
+                {glot["easter_context_var_name"]: glot["easter_context_var_prompt"]}
+            ],
+        ),
+    }
+
+    return proc_map.get(
+        which,
+        Procedure(
+            path=path,
+            title=title,
+            description=description,
+            steps=glot["steps_placeholder"],
+        ),
+    )
+
+
+def _must_be_called_with_name_callback(ctx: typer.Context, value: bool):
+    """Ensure that --skeleton and --nothing are always called with --name."""
+
+    empty_called_without_name: bool = (
+        ctx.params.get("procedure_name") is None and value is not None
+    )
+
+    if empty_called_without_name:
+        raise typer.BadParameter(glot["must_be_called_with_name_warn"])
+
+    return value
+
+
 @app.command(help=glot["new_help"])
 def new(
     ctx: typer.Context,
@@ -79,9 +125,17 @@ def new(
     ),
     global_: bool = global_flag,
     skeleton: bool = typer.Option(
-        False, "--skeleton", "-K", help=glot["new_skeleton_option_help"]
+        "",
+        "--skeleton",
+        "-K",
+        help=glot["new_skeleton_option_help"],
+        flag_value="skeleton",
+        callback=_must_be_called_with_name_callback,
     ),
-    no_edit_after: bool = no_edit_after_flag,
+    nothing: bool = typer.Option(
+        "", "--nothing", "-T", help=glot["new_nothing_flag_help"], flag_value="nothing"
+    ),
+    edit_after: bool = edit_after_flag,
     overwrite: bool = typer.Option(
         False, "--overwrite", "-O", help=glot["new_overwrite_option_help"]
     ),
@@ -90,61 +144,55 @@ def new(
 
     destination_dir = HOME_DOT_NOTHING_DIR if global_ else CWD_DOT_NOTHING_DIR
 
-    # keep ur eye on the ball, there be mutants here
-    defaults = {
+    prompt_display_defaults = {
         "name": procedure_name,
         "default_destination": friendly_prefix_for_path(destination_dir),
-        "no_edit_after": no_edit_after,
+        "edit_after": edit_after,
     }
 
-    if not skeleton:
+    # keep ur eye on the ball, there be mutants here
+    # _which_procedure() needs these declared no matter what
+    title = ""
+    description = ""
+
+    if not (skeleton or nothing):
         (
             title,
             description,
             procedure_name,
             destination_dir,
-            no_edit_after,
-        ) = prompt_for_new_args(**defaults)
+            edit_after,
+        ) = prompt_for_new_args(**prompt_display_defaults)
 
     # just in case the user gave a path with a ~ in it
     destination_dir = Path(destination_dir).expanduser()
 
     procedure_filename = f"{procedure_name}{PROCEDURE_EXT}"
-    if skeleton:
-        procedure = Procedure(
-            path=destination_dir / procedure_filename,
-            title=glot["skeleton_title"],
-            description=glot["skeleton_description"],
-            steps=glot["skeleton_steps"],
-            context=[glot["skeleton_context_name_name"]],
-            knowns=[{glot["skeleton_knowns_name"]: glot["skeleton_knowns_value"]}],
-        )
-    else:
-        procedure = Procedure(
-            path=destination_dir / procedure_filename,
-            title=title,
-            description=description,
-            steps=glot["steps_placeholder"],
-        )
+    procedure = _which_procedure(
+        skeleton or nothing,
+        title=title,
+        description=description,
+        destination_dir=destination_dir,
+        procedure_filename=procedure_filename,
+    )
 
     try:
         writer.write(procedure, force=overwrite)
     except FileExistsError:
-        if confirm_overwrite(procedure_name):
+        if confirm_overwrite(procedure.name):
             writer.write(procedure, force=True)
 
     # pylint: disable=import-outside-toplevel
-    if not no_edit_after:
+    if edit_after:
         # this is a special occasion!
         from importlib import reload
         from . import filesystem
 
         # `state` in filesystem needs to be recalculated on account of the new
-        # file in the directories it looks at.
-        # importlib does the trick!
+        # file in the directories it looks at. importlib does the trick!
         reload(filesystem)
 
-        ctx.invoke(edit, procedure_name=procedure_name)
+        ctx.invoke(edit, procedure_name=procedure.name)
 
     success(
         glot.localized(

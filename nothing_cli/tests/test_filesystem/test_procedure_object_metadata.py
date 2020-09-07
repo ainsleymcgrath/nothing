@@ -4,14 +4,13 @@
 
 # TODO don't use deserialize here, use the fixture
 from ...filesystem import deserialize_procedure_file, procedure_object_metadata
-from ...localization import polyglot as glot
 
 
 def test_without_context(path_to_simple_basic_proc_file):
     proc = deserialize_procedure_file(path_to_simple_basic_proc_file)
     meta = procedure_object_metadata(proc)
 
-    expected_context_vars = glot["no_context_to_display_placeholder"]
+    expected_context_vars = []
 
     assert (
         meta["context_vars"] == expected_context_vars

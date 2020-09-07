@@ -1,19 +1,19 @@
 # pylint: disable=missing-class-docstring
 
 """Unchanging values that would be inappropriate for config"""
-from enum import Enum
 from pathlib import Path
 
-
-class ValidExtensions(str, Enum):
-    yml = "yml"
-    yaml = "yaml"
-
+VERSION: str = next(
+    line.split(" = ")[1].rstrip("\n")
+    for line in Path("pyproject.toml").open().readlines()
+    if line.startswith("version = ")
+)
 
 STEP_SEPARATOR: str = "\n\n"
-PROCEDURE_EXT = ".yml"
-PROCEDURE_EXT_GLOB = r".y[am]l"  # allow yaml for that one roll-your-own-proc weirdo
-LAZY_CONTEXT_PREFIX = "__"
+PROCEDURE_EXT: str = ".yml"
+PROCEDURE_EXT_GLOB: str = r".y[am]l"  # allow 'yaml' for that 1 roll-your-own weirdo
+LAZY_CONTEXT_PREFIX: str = "__"
+MISSING_INFO_PALCEHOLDER = "-"
 
 CWD: Path = Path.cwd()
 HOME: Path = Path.home()

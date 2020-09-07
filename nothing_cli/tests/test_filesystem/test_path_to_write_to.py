@@ -21,7 +21,6 @@ def only_home_dot_nothing_dir_exists(
     existing_home_dot_nothing_dir: Path, existing_cwd_dot_nothing_dir: Path
 ) -> Path:
     existing_cwd_dot_nothing_dir.rmdir()
-    existing_home_dot_nothing_dir.rmdir()
 
     return existing_home_dot_nothing_dir
 

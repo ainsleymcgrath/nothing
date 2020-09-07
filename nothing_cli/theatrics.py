@@ -5,9 +5,10 @@ from textwrap import indent
 from typing import Any, Dict, Iterator, List, Set, Tuple, Union
 
 import typer
+from click import Choice
 from slugify import slugify
 
-from .constants import LAZY_CONTEXT_PREFIX
+from .constants import LAZY_CONTEXT_PREFIX, MISSING_INFO_PALCEHOLDER
 from .filesystem import (
     collect_fancy_list_input,
     deserialize_procedure_file,
@@ -183,7 +184,7 @@ def multiprompt(*prompts: Tuple[str, Dict]) -> Iterator[Any]:
 
 
 def prompt_for_new_args(
-    name=None, default_destination=None, no_edit_after=None
+    name=None, default_destination="cwd", edit_after=None
 ) -> Iterator[Any]:
     """Prompt for all arguments needed to perform `not do`"""
 
@@ -195,9 +196,13 @@ def prompt_for_new_args(
         (glot["new_name_prompt"], {"default": name}),
         (
             glot["new_destination_prompt"],
-            {"default": default_destination, "type": Path},
+            {
+                "default": default_destination,
+                "type": Choice(["home", "cwd"]),
+                "show_choices": True,
+            },
         ),
-        (glot["new_open_editor_prompt"], {"default": no_edit_after, "type": bool}),
+        (glot["new_open_editor_prompt"], {"default": edit_after, "type": bool}),
     )
 
     return (title, *multiprompt(*prompts))
@@ -328,14 +333,12 @@ def show_dossier(procedure_name):
 
     meta_values = (
         title,
-        obj_meta["description"],
+        obj_meta["description"] or MISSING_INFO_PALCEHOLDER,
         file_meta["full_path"],
         obj_meta["step_count"],
-        obj_meta["context_vars"],
+        obj_meta["context_vars"] or MISSING_INFO_PALCEHOLDER,
         # knowns will look like [ name=value, other_name=other_value ] etc
-        ["=".join(k.popitem()) for k in obj_meta["knowns"]]
-        if isinstance(obj_meta["knowns"], list)
-        else obj_meta["knowns"],
+        ["=".join(k.popitem()) for k in obj_meta["knowns"]] or MISSING_INFO_PALCEHOLDER,
         file_meta["last_accessed"],
         file_meta["last_modified"],
     )

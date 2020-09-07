@@ -28,12 +28,12 @@ completable_procedure_name_argument: typer.Argument = typer.Argument(
 )
 
 
-no_edit_after_flag = typer.Option(
-    False,
-    "--no-edit-after",
-    "-A",
+edit_after_flag = typer.Option(
+    True,
+    "--edit/--no-edit",
+    "-E/-e",
     help=glot["edit_after_option_help"],
     show_default=True,
 )
 
-global_flag = typer.Option(False, "--global", "-G", help=glot["new_global_option_help"])
+global_flag = typer.Option(False, "--global", "-G", help=glot["global_flag_help"])

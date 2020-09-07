@@ -7,7 +7,7 @@
   "steps_placeholder": "...\n\n",
 
   "skeleton_title": "Skeleton Procedure",
-  "skeleton_description": "The procedure you pass when you pass `--skeleton`",
+  "skeleton_description": "The procedure you get when you pass `--skeleton`",
   "skeleton_context_name_name": "weather_today",
   "skeleton_context_name_prompt": "Type anything anything here",
   "skeleton_knowns_name": "tau",
@@ -39,7 +39,6 @@
   "delete_suggestion":"    For a clean start, delete and run this command again.",
 
   "init_help":"Create ./.nothing if it doesn't exist.",
-  "sample_help": "Create a sample Procedure called 'nothing' in ./.nothing if it exists, otherwise in ~/.nothing",
 
   "nag": "Press enter to continue...",
 
@@ -52,11 +51,12 @@
   "new_help": "Create a new Procedure. Interactive when called without arguments (recommended).",
   "new_procedure_name_option_help": "The name of the Procedure you're making. No extension, just the name.",
   "new_extension_option_help": "The extension to apply to the generated file",
-  "new_global_option_help":"Point the command at ~/.nothing instead of the deafault ./.nothing",
-  "new_skeleton_option_help":"Create the Procedure without prompting for values instead using default placeholders. Must be called with --name",
-  "edit_after_option_help":"Do not open $EDITOR after command compltes. (Default is the opposite.)",
+  "new_nothing_flag_help": "Create a sample Procedure called 'nothing'.",
+  "global_flag_help":"Point the command at ~/.nothing instead of the deafault, ./.nothing",
+  "new_skeleton_option_help":"Create the Procedure without prompting for values instead using default placeholders.",
+  "edit_after_option_help":"Open $EDITOR after command completes.",
   "new_overwrite_option_help":"If a Procedure with the given name exists, overwrite it or don't.",
-  "new_skeleton_callback_warning": "Can't use --skeleton/-E without --name/-N specified",
+  "must_be_called_with_name_warn": "Can't use --empty/-E without --name/-N specified",
 
   "edit_name_prompt": "New Procedure name",
   "edit_title_prompt": "New Procedure title",

@@ -4,7 +4,6 @@
 """Tests for not.theatrics, mostly the private utils"""
 import pytest
 
-from ..filesystem import deserialize_procedure_file
 from ..theatrics import InterpolationStore
 
 
@@ -19,15 +18,18 @@ class TestInterpolationStore:
         monkeypatch.setattr(InterpolationStore, "prompt_for_value", patched_stdin)
 
     @pytest.fixture
-    def procedure_with_context_only(self, procedure_with_context_as_list_of_mappings):
-        return deserialize_procedure_file(procedure_with_context_as_list_of_mappings)
+    def procedure_with_context_only(
+        self, procedure_with_context_as_list_of_mappings, existing_proc_instance
+    ):
+        name, content = procedure_with_context_as_list_of_mappings
+        return existing_proc_instance(name, content)
 
     def test_get_interpolations(self, procedure_with_context_only):
         store = InterpolationStore(procedure_with_context_only)
 
         first_step = procedure_with_context_only.steps[0]
 
-        interpolations = store.get_interpolations(first_step)
+        interpolations = store.get_interpolations(first_step, 1)
 
         assert interpolations == {
             "destination": "sure"
@@ -48,22 +50,26 @@ class TestInterpolationStore:
         assert names == expected_names
 
     @pytest.fixture
-    def procedure_with_knowns_only(self, procedure_with_knowns):
-        return deserialize_procedure_file(procedure_with_knowns)
+    def procedure_with_knowns_only(self, procedure_with_knowns, existing_proc_instance):
+        name, content = procedure_with_knowns
+        return existing_proc_instance(name, content)
 
     def test_get_interpolations_knowns(self, procedure_with_knowns_only):
         store = InterpolationStore(procedure_with_knowns_only)
 
         referencing_step = procedure_with_knowns_only.steps[1]
 
-        interpolations = store.get_interpolations(referencing_step)
+        interpolations = store.get_interpolations(referencing_step, 2)
 
         assert interpolations == {
             "what_to_grab": "Everything you own"
         }, "get_interpolations retrieves values that came from knowns"
 
-    def test_get_interpolations_lazy_context(self, procedure_with_lazy_context):
-        procedure = deserialize_procedure_file(procedure_with_lazy_context)
+    def test_get_interpolations_lazy_context(
+        self, procedure_with_lazy_context, existing_proc_instance
+    ):
+        name, content = procedure_with_lazy_context
+        procedure = existing_proc_instance(name, content)
         store = InterpolationStore(procedure)
 
         assert "__latest_bedtime" in store.requisite_names, (
@@ -79,7 +85,7 @@ class TestInterpolationStore:
         referencing_step = procedure.steps[1]
 
         # now it reaches to stdin to get the value
-        interpolations = store.get_interpolations(referencing_step)
+        interpolations = store.get_interpolations(referencing_step, 2)
 
         assert interpolations == {"__latest_bedtime": "sure"}, (
             "After calling get_interpolations, the store sets the"
